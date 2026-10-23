@@ -1,0 +1,47 @@
+.mail-game {max-width:720px;margin:0 auto;color:#151b46;}
+.mail-neighbor {display:flex;align-items:center;gap:20px;margin-bottom:18px;}
+.mail-neighbor>.neighbor-sprite {flex:0 0 118px;width:118px;height:134px;}
+.mail-dialogue {flex:1;min-width:0;}
+.mail-dialogue h2 {margin:0 0 9px;font-size:26px;line-height:1.25;}
+.mail-dialogue p {margin:0;max-width:42ch;font-size:16px;line-height:1.5;min-height:48px;}
+.mail-task-picker {display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:15px 0;}
+.mail-task-picker label {font-size:14px;font-weight:700;}
+.mail-task-picker select {width:auto;max-width:100%;min-height:44px;border:1px solid #8a9ab4;border-radius:10px;background:#fff;padding:9px 36px 9px 12px;color:#151b46;font:inherit;font-size:15px;}
+.mail-clues {list-style:none;margin:0;padding:14px 18px;border-left:4px solid #b7aefa;background:#f5f3ff;}
+.mail-clues li {margin:4px 0;font-size:15px;line-height:1.5;}
+.mail-clues li+li {margin-top:8px;}
+.mail-instruction {margin:19px 0 12px;color:#485b77;font-size:14px;line-height:1.5;}
+.mail-shelves {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;align-items:end;padding:10px 5px 0;}
+.mail-slot {display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:140px;border:2px solid transparent;border-radius:13px;background:none;padding:9px 7px 0;color:inherit;font:inherit;cursor:pointer;}
+.mail-slot:hover {background:#f4f6fa;}
+.mail-slot[aria-pressed="true"] {border-color:#187f6e;background:#e8f8f4;}
+.mail-parcel {position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1/1;max-height:180px;width:100%;border:2px solid #6e635e;border-radius:9px;background:#edc9a8;box-shadow:inset 0 0 0 5px #f4d8be;overflow:hidden;}
+.mail-parcel::before {content:'';position:absolute;left:42%;top:0;width:15%;height:100%;background:#d6b493;opacity:.75;}
+.mail-parcel-stamp {position:relative;display:block;width:56%;max-width:87px;border:1px solid #8a7c6f;border-radius:8px;background:#fff7eb;padding:5px;}
+.mail-parcel-stamp svg {display:block;width:100%;height:auto;fill:#b7aefa;stroke:#151b46;stroke-width:2.7;stroke-linejoin:round;stroke-linecap:round;}
+.mail-parcel-0 svg {fill:#91dcc7;}
+.mail-parcel-2 svg {fill:#b0d591;}
+.mail-parcel-name {position:relative;padding:5px 7px 0;font-size:14px;font-weight:800;line-height:1.4;}
+.mail-shelf-name {display:block;margin:0 -4px;padding:7px 0 0;border-top:7px solid #8a736d;color:#485b77;font-size:13px;line-height:1.4;}
+.mail-actions,.mail-ending {display:flex;flex-wrap:wrap;gap:12px;margin-top:21px;}
+.mail-ending {padding-top:18px;border-top:1px solid #e0e5ee;}
+.mail-game .btn {min-height:44px;max-width:100%;white-space:normal;font-size:14px;}
+.mail-game :is(button,select):focus-visible {outline:3px solid #151b46;outline-offset:4px;}
+.mail-game button:disabled {opacity:.55;cursor:default;}
+@media (max-width:520px) {
+  .mail-neighbor {gap:12px;}
+  .mail-neighbor>.neighbor-sprite {flex-basis:82px;width:82px;height:97px;}
+  .mail-dialogue h2 {font-size:22px;}
+  .mail-dialogue p {font-size:14px;}
+  .mail-clues {padding:11px 13px;}
+  .mail-clues li {font-size:14px;}
+  .mail-shelves {gap:5px;padding-inline:0;}
+  .mail-slot {min-height:110px;padding:7px 3px 0;}
+  .mail-parcel {border-radius:7px;}
+  .mail-parcel-stamp {width:62%;border-radius:5px;padding:3px;}
+  .mail-parcel-name {font-size:12px;padding:4px 2px 0;}
+  .mail-actions,.mail-ending {gap:9px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .mail-game *,.mail-game *::before,.mail-game *::after {animation:none!important;transition:none!important;}
+}

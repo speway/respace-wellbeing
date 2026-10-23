@@ -1,0 +1,4 @@
+from pathlib import Path
+p=Path('src/mail-view.ts');s=p.read_text(encoding='utf-8').replace('<h2>Почта Бипа</h2>','<h2 id="modal-title">Почта Бипа</h2>');p.write_text(s,encoding='utf-8')
+p=Path('src/space.ts');s=p.read_text(encoding='utf-8').replace('<h2 id="modal-title" class="sr-only">Почта Бипа</h2>','');p.write_text(s,encoding='utf-8')
+p=Path('src/account.ts');s=p.read_text(encoding='utf-8').replace('Вы здесь как гость','Гостевой профиль').replace('<p class="eyebrow">МОЖНО НАЧАТЬ СРАЗУ</p>','').replace('Ваш прогресс','Сохранения').replace('Свой темп, свои сохранения.','Устройство и облачная копия.').replace('Регистрация необязательна. Игры и темы доступны сразу.','Комната, небо и темы сохраняются на этом устройстве.').replace('ваши личные тексты','твои личные тексты').replace('Сохраните пароль','Сохрани пароль');p.write_text(s,encoding='utf-8')

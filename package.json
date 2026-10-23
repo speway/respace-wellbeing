@@ -1,0 +1,38 @@
+{
+  "name": "respace-wellbeing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "mobile:sync": "pnpm build && cap sync",
+    "android": "cap open android",
+    "android:debug": "pnpm mobile:sync && cd android && gradlew.bat assembleDebug",
+    "ios": "cap open ios",
+    "dev:api": "node --env-file=.env.local scripts/dev-api.mjs",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/splash-screen": "8.0.0",
+    "@fontsource/nunito": "^5.3.0",
+    "better-auth": "^1.7.7",
+    "lucide": "^0.468.0",
+    "pg": "^8.23.1",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@types/three": "^0.186.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.0"
+  }
+}

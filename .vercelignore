@@ -1,0 +1,9 @@
+artifacts/
+docs/
+tests/
+android/
+ios/
+.env*
+scripts/
+
+media

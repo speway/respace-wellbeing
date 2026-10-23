@@ -1,0 +1,91 @@
+.motion-setting,
+.sound-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 18px 0;
+}
+
+.motion-setting > div,
+.sound-setting > div {
+  min-width: 0;
+}
+
+.motion-setting h2,
+.sound-setting h2 {
+  margin: 0 0 6px;
+}
+
+.motion-setting p,
+.sound-setting p {
+  margin: 0;
+  max-width: 58ch;
+}
+
+.motion-toggle,
+.sound-toggle {
+  flex: 0 0 auto;
+  min-width: 116px;
+}
+
+.station-art {
+  position: relative;
+}
+
+.station-arrival {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: inherit;
+  background: var(--sage, #ddf6ef);
+  color: var(--ink, #151b46);
+  font-size: 14px;
+}
+
+.station-arrival strong {
+  font-size: 18px;
+}
+
+.station-arrival .ri {
+  color: var(--brand, #168e80);
+  font-size: 28px;
+}
+
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (max-width: 520px) {
+  .motion-setting,
+  .sound-setting {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .motion-toggle,
+  .sound-toggle {
+    min-width: 104px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
