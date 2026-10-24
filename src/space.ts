@@ -28,7 +28,7 @@ export function createSpace(host:Host,root:HTMLElement) {
   let activeLesson='';let step=0;let selections:Record<number,number>={};let matches:Record<number,number[]>={};let responses:Record<number,string>={};let reflectionChoices:Record<number,string[]>={};let submitted=false;
   let roomPage=0;let roomTea='';
   let room=structuredClone(getSpace().room);let roomHistory:typeof room[]=[];let selectedKind='chair';let activeSlot=4;let roomDirty=false;
-  let stars=structuredClone(getSpace().stars);let starSelected:number|null=null;let showHint=false;let starHistory:typeof stars[]=[];let starFuture:typeof stars[]=[];
+  let stars=structuredClone(getSpace().stars);let starSelected:number|null=null;let starFocusIndex=0;let showHint=false;let starHistory:typeof stars[]=[];let starFuture:typeof stars[]=[];
   let skyGuest=false;let skyGuestBaseline='';let mail=initialMail();let mailSelected:number|null=null;let mailChecked=false;let mailHistory:MailState[]=[];
   let skyFrom=0;let skyTo=1;let skyRoute:number[]|null=null;let skyStep=0;let skyAttempted=false;let skyTopology='';
   let storyStage=0;let storySelections:number[]=[];
@@ -99,23 +99,26 @@ export function createSpace(host:Host,root:HTMLElement) {
     const target=points.slice(1).map((_,i)=>[i,i+1]);
     const complete=!free&&target.every(e=>stars.edges.some(x=>x.includes(e[0])&&x.includes(e[1])));
     const selected=starSelected===null?undefined:points[starSelected];
+    if(starFocusIndex>=points.length)starFocusIndex=Math.max(0,points.length-1);
+    const activeStar=starSelected!==null?starSelected:(points.length?starFocusIndex:0);
     replaceModal(`<h2 id="modal-title">${skyGuest?'Переправа Нори':'Дорога для светлячка'}</h2>${skyGuest?`<div class="neighbor-line">${neighborSprite('nori',1)}<p>Соедини две дорожки. Светлячку нужно от звезды 1 к звезде 4.</p></div>`:'<p class="muted">Соединяй звёзды, затем выбери начало и конец пути.</p>'}
       <div class="star-top"><label>Рисунок<select id="star-shape" ${skyGuest?'disabled':''}>${shapeNames.map((s,i)=>`<option value="${i}" ${stars.shape===i?'selected':''}>${s}</option>`).join('')}</select></label>${free?'':`<button class="btn secondary small" data-space="star-hint" aria-pressed="${showHint}">${showHint?'Скрыть':'Показать'} подсказку</button>`}</div>
       ${free&&!skyGuest?`<p class="small-text muted">Соединяй звёзды или очисти небо и нарисуй своё. Нажми на пустое место, чтобы добавить звезду; ниже можно ввести координаты с клавиатуры.</p>`:''}
-      <div class="star-canvas" ${free&&!skyGuest?'data-custom-sky="true"':''}><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${showHint&&!free?target.map(([a,b])=>`<line x1="${points[a][0]}" y1="${points[a][1]}" x2="${points[b][0]}" y2="${points[b][1]}" class="hint-line"/>`).join(''):''}${stars.edges.filter(([a,b])=>points[a]&&points[b]).map(([a,b])=>`<line style="stroke:${stars.color??STAR_COLORS[0]}" x1="${points[a][0]}" y1="${points[a][1]}" x2="${points[b][0]}" y2="${points[b][1]}"/>`).join('')}</svg>${firefly?`<span class="sky-firefly" style="left:${firefly[0]}%;top:${firefly[1]}%" aria-hidden="true"><img src="/art/firefly.png" alt="" width="1024" height="1024"/></span>`:''}${points.map(([x,y],i)=>`<button class="star-dot ${starSelected===i?'chosen':''}" style="left:${x}%;top:${y}%" data-space="star-point" data-value="${i}" aria-label="Звезда ${i+1}" aria-pressed="${starSelected===i}"><span aria-hidden="true">✦</span><small>${i+1}</small></button>`).join('')}<span class="sky-caption" role="status" aria-live="polite" data-motion-feedback>${complete?'Рисунок собран.':points.length===0?'Добавь первую звезду.':starSelected===null?'Нажми на две звезды, чтобы соединить их.':`Соедини со звездой ${starSelected+1}.`}</span></div>
+      <p id="star-keyboard-hint" class="small-text muted">Клавиатура: стрелки — следующая/предыдущая звезда по порядку с переходом через край; Home/End — первая/последняя; Enter или Пробел — выбрать/соединить; Escape — отменить выбор.</p>
+      <div class="star-canvas" role="region" aria-label="Карта созвездия" aria-describedby="star-keyboard-hint" ${free&&!skyGuest?'data-custom-sky="true"':''}><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${showHint&&!free?target.map(([a,b])=>`<line x1="${points[a][0]}" y1="${points[a][1]}" x2="${points[b][0]}" y2="${points[b][1]}" class="hint-line"/>`).join(''):''}${stars.edges.filter(([a,b])=>points[a]&&points[b]).map(([a,b])=>`<line style="stroke:${stars.color??STAR_COLORS[0]}" x1="${points[a][0]}" y1="${points[a][1]}" x2="${points[b][0]}" y2="${points[b][1]}"/>`).join('')}</svg>${firefly?`<span class="sky-firefly" style="left:${firefly[0]}%;top:${firefly[1]}%" aria-hidden="true"><img src="/art/firefly.png" alt="" width="1024" height="1024"/></span>`:''}${points.map(([x,y],i)=>{const isChosen=starSelected===i;const isCurrent=activeStar===i;const connectedTo=stars.edges.filter(([a,b])=>a===i||b===i).map(([a,b])=>(a===i?b:a)+1).sort((a,b)=>a-b);const connText=connectedTo.length?`Соединена со звёздами: ${connectedTo.join(', ')}`:'линий нет';const actionHint=isChosen?'Начало линии. Нажми другую звезду для соединения или Escape для отмены':starSelected!==null?`Нажми Enter или Пробел, чтобы провести линию от звезды ${starSelected+1}`:'Нажми Enter или Пробел, чтобы начать соединение';const label=`Звезда ${i+1} (X ${x}%, Y ${y}%): ${connText}. ${actionHint}`;return `<button class="star-dot ${isChosen?'chosen':''}" style="left:${x}%;top:${y}%" role="button" data-space="star-point" data-value="${i}" tabindex="${isCurrent?'0':'-1'}" aria-pressed="${isChosen?'true':'false'}" aria-label="${esc(label)}"><span aria-hidden="true">✦</span><small aria-hidden="true">${i+1}</small></button>`;}).join('')}<span class="sky-caption" role="status" aria-live="polite" data-motion-feedback>${complete?'Рисунок собран.':points.length===0?'Добавь первую звезду.':starSelected===null?'Нажми на две звезды, чтобы соединить их.':`Выбрана звезда ${starSelected+1}. Нажми вторую звезду для соединения или Escape для отмены.`}</span></div>
       <div class="star-orbit-tools"><button class="btn secondary small" data-space="star-orbit-open" aria-expanded="false" aria-controls="star-orbit-panel">Посмотреть небо в объёме</button><span class="small-text muted">Это только другой угол обзора — схема остаётся прежней.</span></div>
       <section class="star-orbit-panel" id="star-orbit-panel" hidden aria-label="Объёмный вид неба"><div class="three-scene-controls"><button class="btn secondary small" data-space="three-view-turn" data-value="-1" aria-label="Повернуть влево">↶</button><button class="btn secondary small" data-space="three-view-turn" data-value="1" aria-label="Повернуть вправо">↷</button><button class="text-button" data-space="star-orbit-close">Вернуться к рисунку</button></div><div class="three-scene-stage star-orbit-stage" id="star-orbit-stage" role="img" aria-label="Объёмный вид сохранённых звёзд и линий"></div><p class="three-scene-status" id="star-orbit-status" role="status" aria-live="polite">Вид неба можно повернуть пальцем или кнопками.</p></section>
-      ${free&&!skyGuest?`<div class="sky-tools"><label>По горизонтали<input id="star-x" type="number" min="5" max="95" step="1" value="${selected?.[0]??50}"/></label><label>По вертикали<input id="star-y" type="number" min="5" max="95" step="1" value="${selected?.[1]??50}"/></label><button class="btn secondary small" data-space="star-add" ${points.length>=16?'disabled':''}>Добавить звезду</button>${selected?'<button class="btn secondary small" data-space="star-move">Переместить выбранную</button><button class="btn secondary small" data-space="star-remove">Убрать выбранную</button>':''}<button class="btn secondary small" data-space="star-clear" ${points.length?'':'disabled'}>Очистить небо</button><span class="small-text muted">${points.length} / 16 звёзд · очистку можно отменить</span></div>`:''}
+      ${free&&!skyGuest?`<div class="sky-tools" role="group" aria-label="Панель добавления и перемещения звёзд"><label>По горизонтали (%)<input id="star-x" type="number" min="5" max="95" step="1" value="${selected?.[0]??50}" aria-label="Координата по горизонтали, от 5 до 95 процентов"/></label><label>По вертикали (%)<input id="star-y" type="number" min="5" max="95" step="1" value="${selected?.[1]??50}" aria-label="Координата по вертикали, от 5 до 95 процентов"/></label><button class="btn secondary small" data-space="star-add" ${points.length>=16?'disabled':''} aria-label="Добавить звезду с указанными координатами">Добавить звезду</button>${selected?`<button class="btn secondary small" data-space="star-move" aria-label="Переместить выбранную звезду ${starSelected!+1} на новые координаты">Переместить выбранную</button><button class="btn secondary small" data-space="star-remove" aria-label="Убрать выбранную звезду ${starSelected!+1}">Убрать выбранную</button>`:''}<button class="btn secondary small" data-space="star-clear" ${points.length?'':'disabled'} aria-label="Очистить все звёзды в небе">Очистить небо</button><span class="small-text muted" role="status">${points.length} / 16 звёзд · очистку можно отменить</span></div>`:''}
       <section class="sky-route-controls" aria-label="Путь светлячка"><div>${[['sky-from','Откуда',skyFrom],['sky-to','Куда',skyTo]].map(([id,label,current])=>`<label>${label}<select id="${id}" ${points.length&&!skyGuest?'':'disabled'}>${points.map((_,i)=>`<option value="${i}" ${i===current?'selected':''}>Звезда ${i+1}</option>`).join('')}</select></label>`).join('')}<button class="btn secondary small" data-space="sky-route" ${points.length?'':'disabled'}>Показать маршрут</button>${skyRoute&&skyStep<skyRoute.length-1?'<button class="btn small" data-space="sky-next">Дальше по дорожке</button>':''}</div><p class="sky-route-status" role="status">${skyRoute?skyStep===skyRoute.length-1?'Светлячок добрался.':`Путь: ${skyRoute.map(i=>i+1).join(' → ')}. Сейчас у звезды ${skyRoute[skyStep]+1}.`:skyAttempted?'Здесь разрыв. Соедини соседние звёзды.':'Когда соединишь звёзды, можно посмотреть маршрут.'}</p></section>
       <label>Цвет линий<select id="star-color">${STAR_COLORS.map((color,i)=>`<option value="${color}" ${(stars.color??STAR_COLORS[0])===color?'selected':''}>${['Лунный','Лиловый','Тёплый','Мятный'][i]}</option>`).join('')}</select></label>
       <label>Название <span class="optional">по желанию</span><input id="star-title" maxlength="80" value="${esc(stars.title)}" placeholder="Маленькое небо"/></label>
       ${stars.edges.length?`<details class="sky-lines" ${linesOpen?'open':''}><summary>Линии: ${stars.edges.length} — убрать отдельную</summary><div>${stars.edges.map(([a,b],i)=>`<button class="btn secondary small" data-space="star-line-remove" data-value="${i}" aria-label="Убрать линию между звёздами ${a+1} и ${b+1}">${a+1} ↔ ${b+1} ${I('X')}</button>`).join('')}</div></details>`:''}
       <p id="star-save-status" class="small-text muted" role="status">${skySaveKey(stars)===skySaveKey(getSpace().stars)?'Небо сохранено.':'Есть изменения.'}</p>
-      <div class="room-bottom"><button class="btn secondary small" data-space="star-undo" ${starHistory.length?'':'disabled'}>Отменить действие</button><button class="btn secondary small" data-space="star-redo" ${starFuture.length?'':'disabled'}>Вернуть действие</button><button class="btn secondary small" data-space="star-export">${I('Download')} Изображение</button><button class="btn" data-space="star-save">${skyGuest?'Сохранить это небо':'Сохранить небо'}</button></div>`,true);
+      <div class="room-bottom"><button class="btn secondary small" data-space="star-undo" ${starHistory.length?'':'disabled'} aria-label="Отменить последнее действие в небе">Отменить действие</button><button class="btn secondary small" data-space="star-redo" ${starFuture.length?'':'disabled'} aria-label="Вернуть отменённое действие в небе">Вернуть действие</button><button class="btn secondary small" data-space="star-export" aria-label="Экспортировать рисунок неба в формате PNG">${I('Download')} Изображение</button><button class="btn" data-space="star-save" aria-label="${skyGuest?'Сохранить переправу Нори на устройстве':'Сохранить рисунок неба на устройстве'}">${skyGuest?'Сохранить это небо':'Сохранить небо'}</button></div>`,true);
     let next=focus?document.getElementById(focus):retainedFocus?document.querySelector<HTMLElement>(retainedFocus):null;
     if(!next||next.hasAttribute('disabled')){
-      const fallback=active?.dataset.space==='star-redo'?'star-undo':active?.dataset.space==='star-undo'?'star-redo':active?.dataset.space==='star-line-remove'?'star-undo':null;
-      if(fallback)next=document.querySelector<HTMLElement>(`[data-space="${fallback}"]`);
+      const fallback=active?.dataset.space==='star-line-remove'?(document.querySelector<HTMLElement>('[data-space="star-line-remove"]')?'star-line-remove':document.querySelector<HTMLElement>('.sky-lines summary')?'sky-lines':'star-undo'):active?.dataset.space==='star-remove'?'star-x':active?.dataset.space==='star-redo'?'star-undo':active?.dataset.space==='star-undo'?'star-redo':null;
+      if(fallback)next=document.getElementById(fallback)??(fallback==='sky-lines'?document.querySelector<HTMLElement>('.sky-lines summary'):document.querySelector<HTMLElement>(`[data-space="${fallback}"]`));
     }
     if(next&&!next.hasAttribute('disabled'))next.focus({preventScroll:true});
     if(dialog)dialog.scrollTop=scrollTop;
@@ -166,7 +169,7 @@ export function createSpace(host:Host,root:HTMLElement) {
   window.addEventListener('beforeunload',e=>{if(unsavedArtifact()){e.preventDefault();e.returnValue='';}});
   root.addEventListener('keydown',e=>{
     const el=(e.target as HTMLElement)?.closest<HTMLElement>('.room-slot');
-    if(!el)return;
+    if(el){
     const slot=Number(el.dataset.value);
     if(!Number.isInteger(slot)||slot<0||slot>8)return;
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){
@@ -206,6 +209,62 @@ export function createSpace(host:Host,root:HTMLElement) {
       }else{
         host.toast('Сначала поставь предмет (Enter), затем его можно повернуть (Space).');
       }
+      return;
+    }
+    return;
+  }
+  const starEl=(e.target as HTMLElement)?.closest<HTMLElement>('.star-dot');
+    if(starEl){
+      const index=Number(starEl.dataset.value);
+      const points=starPoints(stars);
+      if(Number.isInteger(index)&&index>=0&&index<points.length){
+        if(['ArrowRight','ArrowDown'].includes(e.key)){
+          e.preventDefault();
+          const nextIndex=(index+1)%points.length;
+          starFocusIndex=nextIndex;
+          root.querySelectorAll<HTMLButtonElement>('.star-dot').forEach(s=>s.setAttribute('tabindex','-1'));
+          const target=root.querySelector<HTMLButtonElement>(`.star-dot[data-value="${nextIndex}"]`);
+          if(target){
+            target.setAttribute('tabindex','0');
+            target.focus({preventScroll:true});
+          }
+        }else if(['ArrowLeft','ArrowUp'].includes(e.key)){
+          e.preventDefault();
+          const prevIndex=(index-1+points.length)%points.length;
+          starFocusIndex=prevIndex;
+          root.querySelectorAll<HTMLButtonElement>('.star-dot').forEach(s=>s.setAttribute('tabindex','-1'));
+          const target=root.querySelector<HTMLButtonElement>(`.star-dot[data-value="${prevIndex}"]`);
+          if(target){
+            target.setAttribute('tabindex','0');
+            target.focus({preventScroll:true});
+          }
+        }else if(e.key==='Home'){
+          e.preventDefault();
+          starFocusIndex=0;
+          root.querySelectorAll<HTMLButtonElement>('.star-dot').forEach(s=>s.setAttribute('tabindex','-1'));
+          const target=root.querySelector<HTMLButtonElement>('.star-dot[data-value="0"]');
+          if(target){
+            target.setAttribute('tabindex','0');
+            target.focus({preventScroll:true});
+          }
+        }else if(e.key==='End'){
+          e.preventDefault();
+          starFocusIndex=points.length-1;
+          root.querySelectorAll<HTMLButtonElement>('.star-dot').forEach(s=>s.setAttribute('tabindex','-1'));
+          const target=root.querySelector<HTMLButtonElement>(`.star-dot[data-value="${points.length-1}"]`);
+          if(target){
+            target.setAttribute('tabindex','0');
+            target.focus({preventScroll:true});
+          }
+        }else if(e.key==='Escape'&&starSelected!==null){
+          e.preventDefault();
+          e.stopPropagation();
+          starSelected=null;
+          showStars();
+          root.querySelector<HTMLButtonElement>(`.star-dot[data-value="${index}"]`)?.focus({preventScroll:true});
+        }
+      }
+      return;
     }
   });
   root.addEventListener('change',e=>{const input=e.target as HTMLSelectElement;if(input.id==='mail-task'){mailSnapshot();mail=initialMail(Number(input.value));mailSelected=null;showMail();}if(input.hasAttribute('data-match-row')){matches[step]??=[];matches[step][Number(input.dataset.matchRow)]=input.value===''?-1:Number(input.value);submitted=false;document.querySelectorAll('.match-feedback').forEach(el=>el.remove());const next=document.querySelector<HTMLButtonElement>('[data-space=lesson-next]');if(next)next.innerHTML='Посмотреть объяснение '+I('ArrowRight');host.icons();}if(input.id==='sky-from'||input.id==='sky-to'){captureStar();if(input.id==='sky-from')skyFrom=Number(input.value);else skyTo=Number(input.value);skyRoute=null;skyAttempted=false;showStars(input.id);}if(input.id==='room-theme'||input.id==='room-palette'){roomSnapshot();if(input.id==='room-theme')room.theme=Number(input.value);else room.palette=Number(input.value);showRoom();}if(input.id==='star-color'){starSnapshot();stars.color=input.value;showStars('star-color');}if(input.id==='star-shape'){starSnapshot();stars={shape:Number(input.value),edges:[],title:''};starSelected=null;showHint=false;showStars('star-shape');}});
@@ -250,7 +309,7 @@ export function createSpace(host:Host,root:HTMLElement) {
       case 'star-orbit-open':{const panel=document.getElementById('star-orbit-panel'),stage=document.getElementById('star-orbit-stage'),status=document.getElementById('star-orbit-status');if(!panel||!stage||!status)break;panel.hidden=false;el.setAttribute('aria-expanded','true');el.textContent='Скрыть объёмный вид';status.textContent='Готовим сцену обсерватории…';document.querySelector<HTMLDialogElement>('#modal')?.addEventListener('close',disposeThreeView,{once:true});void openStarView(stage,{points:starPoints(stars),edges:structuredClone(stars.edges),color:stars.color??STAR_COLORS[0]}).then(ok=>{if(stage.isConnected&&!panel.hidden)status.textContent=ok?'Потяни сцену пальцем или мышью; клавиатурой её можно повернуть кнопками.':'Плоский рисунок ниже работает без объёмной сцены.';});break;}
       case 'star-orbit-close':disposeThreeView();{const panel=document.getElementById('star-orbit-panel'),trigger=document.querySelector<HTMLElement>('[data-space="star-orbit-open"]');if(panel)panel.hidden=true;if(trigger){trigger.setAttribute('aria-expanded','false');trigger.textContent='Посмотреть небо в объёме';trigger.focus({preventScroll:true});}break;}
       case 'three-view-turn':rotateThreeView(Number(value)<0?-1:1);break;
-      case 'star-point':captureStar();if(starSelected===null)starSelected=Number(value);else{const edges=connectStars(stars.edges,starSelected,Number(value));if(edges!==stars.edges){starSnapshot();stars.edges=edges;}starSelected=null;}showStars();break;
+      case 'star-point':captureStar();starFocusIndex=Number(value);if(starSelected===null)starSelected=Number(value);else{const edges=connectStars(stars.edges,starSelected,Number(value));if(edges!==stars.edges){starSnapshot();stars.edges=edges;}starSelected=null;}showStars();break;
       case 'star-hint':captureStar();showHint=!showHint;showStars();break;
       case 'star-undo':{const previous=starHistory.pop();if(previous){captureStar();starFuture.push(structuredClone(stars));stars=previous;starSelected=null;showStars();}break;}
       case 'star-redo':{const next=starFuture.pop();if(next){captureStar();starHistory.push(structuredClone(stars));stars=next;starSelected=null;showStars();}break;}

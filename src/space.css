@@ -11,6 +11,11 @@
 .room-canvas,.room-grid,.room-slot,.item-tray,.item-tray button{touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .room-slot:focus-visible{outline:3px solid #6558d5;outline-offset:2px;box-shadow:0 0 0 2px rgba(255,255,255,0.85);border-color:#ffffff}
 .room-slot.selected-slot:focus-visible{outline:3px solid #6558d5;outline-offset:2px;box-shadow:0 0 0 2px rgba(255,255,255,0.95);border-color:#ffffff}
-@media(prefers-reduced-motion:reduce){.room-slot,.room-slot>span,.room-canvas,.room-resident{transition:none!important;animation:none!important}}
+.star-canvas,.star-dot,.sky-tools,.sky-route-controls{touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.star-dot:focus-visible{outline:3px solid #ffd866;outline-offset:3px;box-shadow:0 0 0 2px #1f273d,0 0 10px rgba(255,216,102,.6)}
+.star-dot.chosen{background:rgba(255,240,173,.35);border:2px solid #fff0ad;box-shadow:0 0 10px rgba(255,240,173,.5);color:#fff}
+.star-dot.chosen:focus-visible{outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 2px #242e49,0 0 14px #fff0ad}
+.sky-tools input:focus-visible,.sky-route-controls select:focus-visible,.sky-route-controls button:focus-visible,.sky-lines button:focus-visible{outline:3px solid #6558d5;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.room-slot,.room-slot>span,.room-canvas,.room-resident,.star-dot,.sky-firefly,.star-canvas line,.hint-line{transition:none!important;animation:none!important}}
 
 
