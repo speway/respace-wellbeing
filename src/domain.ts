@@ -5,6 +5,8 @@ export type Context = 'gaming' | 'work' | 'rest';
 export interface Entry {
   id: string; at: string; day: string; moment: Moment; context: Context;
   mood: number; energy: number; pressure: number; fomo: number;
+  /** Absent in legacy entries; false only when a new entry intentionally skips all primary scales. */
+  ratingsIncluded?: boolean;
   note: string; intention: string;
   game?: string;
   experience?: { pleasure: number; meaning: number; effort: number; emptiness: number };
@@ -41,9 +43,11 @@ export function validateData(value: unknown): AppData {
   if (!Array.isArray(d.entries) || d.entries.length > 5000 || !Array.isArray(d.habits) || d.habits.length > 30 || !Array.isArray(d.practices) || d.practices.length > 5000) throw new Error('Файл повреждён или превышен лимит записей.');
   const entries = d.entries.map(e => {
     if (!e || !isText(e.id, 100) || !isDate(e.at) || !isDay(e.day) || !['before', 'after', 'day'].includes(e.moment) || !['gaming', 'work', 'rest'].includes(e.context) || ![e.mood, e.energy, e.pressure, e.fomo].every(isScale) || !isText(e.note, 2000) || !isText(e.intention, 300)) throw new Error('Некорректная запись дневника.');
+    if (e.ratingsIncluded !== undefined && typeof e.ratingsIncluded !== 'boolean') throw new Error('Некорректный статус оценок дневника.');
     if (e.game !== undefined && !isText(e.game, 100)) throw new Error('Некорректное название игры.');
     if (e.experience !== undefined && (!e.experience || ![e.experience.pleasure, e.experience.meaning, e.experience.effort, e.experience.emptiness].every(isScale))) throw new Error('Некорректная запись переживаний.');
-    return { id: e.id, at: e.at, day: e.day, moment: e.moment, context: e.context, mood: e.mood, energy: e.energy, pressure: e.pressure, fomo: e.fomo, note: e.note, intention: e.intention, ...(e.game === undefined ? {} : {game: e.game}), ...(e.experience === undefined ? {} : {experience: {pleasure:e.experience.pleasure, meaning:e.experience.meaning, effort:e.experience.effort, emptiness:e.experience.emptiness}}) };
+    if (e.ratingsIncluded === false && e.experience !== undefined) throw new Error('Нельзя добавить оценки занятия без основных шкал.');
+    return { id: e.id, at: e.at, day: e.day, moment: e.moment, context: e.context, mood: e.mood, energy: e.energy, pressure: e.pressure, fomo: e.fomo, note: e.note, intention: e.intention, ...(e.ratingsIncluded === undefined ? {} : {ratingsIncluded: e.ratingsIncluded}), ...(e.game === undefined ? {} : {game: e.game}), ...(e.experience === undefined ? {} : {experience: {pleasure:e.experience.pleasure, meaning:e.experience.meaning, effort:e.experience.effort, emptiness:e.experience.emptiness}}) };
   });
   const habits = d.habits.map(h => {
     if (!h || !isText(h.id, 100) || !isText(h.title, 180) || !Array.isArray(h.days) || h.days.length > 5000 || !h.days.every(isDay)) throw new Error('Некорректная привычка.');
@@ -65,7 +69,10 @@ export function filteredEntries(entries: Entry[], days: number, moment: 'all' | 
 }
 export function dailyAverages(entries: Entry[]): { day: string; energy: number; pressure: number; fomo: number; count: number }[] {
   const groups = new Map<string, Entry[]>();
-  for (const e of entries) groups.set(e.day, [...(groups.get(e.day) || []), e]);
+  for (const e of entries) {
+    if (e.ratingsIncluded === false) continue;
+    groups.set(e.day, [...(groups.get(e.day) || []), e]);
+  }
   return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([day, es]) => ({ day, energy: es.reduce((s, e) => s + e.energy, 0) / es.length, pressure: es.reduce((s, e) => s + e.pressure, 0) / es.length, fomo: es.reduce((s, e) => s + e.fomo, 0) / es.length, count: es.length }));
 }
 export function csvExport(entries: Entry[]): string {
@@ -73,7 +80,7 @@ export function csvExport(entries: Entry[]): string {
     let s = String(value); if (/^[\s]*[=+\-@]/.test(s)) s = "'" + s;
     return '"' + s.replace(/"/g, '""') + '"';
   };
-  return '\uFEFF' + [['id', 'date', 'local_day', 'moment', 'context', 'mood_0_10', 'energy_0_10', 'pressure_0_10', 'fomo_0_10', 'game', 'pleasure_0_10', 'meaning_0_10', 'effort_0_10', 'emptiness_0_10', 'intention', 'note'], ...entries.map(e => [e.id, e.at, e.day, e.moment, e.context, e.mood, e.energy, e.pressure, e.fomo, e.game ?? '', e.experience?.pleasure ?? '', e.experience?.meaning ?? '', e.experience?.effort ?? '', e.experience?.emptiness ?? '', e.intention, e.note])].map(row => row.map(safe).join(',')).join('\r\n');
+  return '\uFEFF' + [['id', 'date', 'local_day', 'moment', 'context', 'mood_0_10', 'energy_0_10', 'pressure_0_10', 'fomo_0_10', 'game', 'pleasure_0_10', 'meaning_0_10', 'effort_0_10', 'emptiness_0_10', 'intention', 'note'], ...entries.map(e => [e.id, e.at, e.day, e.moment, e.context, e.ratingsIncluded === false ? '' : e.mood, e.ratingsIncluded === false ? '' : e.energy, e.ratingsIncluded === false ? '' : e.pressure, e.ratingsIncluded === false ? '' : e.fomo, e.game ?? '', e.experience?.pleasure ?? '', e.experience?.meaning ?? '', e.experience?.effort ?? '', e.experience?.emptiness ?? '', e.intention, e.note])].map(row => row.map(safe).join(',')).join('\r\n');
 }
 export function demoEntries(now = new Date()): Entry[] {
   const values = [[4, 8, 7], [5, 7, 7], [3, 8, 8], [6, 5, 5], [6, 6, 4], [7, 4, 3], [7, 3, 4]];
