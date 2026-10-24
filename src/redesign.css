@@ -876,3 +876,93 @@ dialog::backdrop {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ── Мягкий выход из игрового пространства ── */
+.soft-exit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.soft-exit-char {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.soft-exit h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--rd-ink);
+  margin: 0;
+}
+
+.soft-exit .muted {
+  font-size: 0.92rem;
+  color: var(--rd-ink-soft);
+  margin: 0;
+}
+
+.soft-exit-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 4px;
+}
+
+.soft-exit-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 13px 18px;
+  border: 1.5px solid var(--rd-line);
+  border-radius: 14px;
+  background: var(--rd-paper);
+  color: var(--rd-ink);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  font-family: inherit;
+  width: 100%;
+}
+
+.soft-exit-btn svg {
+  flex-shrink: 0;
+  color: var(--rd-mint-deep);
+}
+
+.soft-exit-btn:hover {
+  background: var(--rd-paper-deep);
+  border-color: var(--rd-mint-deep);
+}
+
+.soft-exit-btn:focus-visible {
+  background: var(--rd-paper-deep);
+  border-color: var(--rd-mint-deep);
+  outline: 2px solid var(--rd-mint-deep);
+  outline-offset: 2px;
+}
+
+.soft-exit-btn:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soft-exit-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}
