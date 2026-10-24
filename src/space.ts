@@ -55,7 +55,7 @@ export function createSpace(host:Host,root:HTMLElement) {
   function refreshStation(){root.querySelectorAll('.station-map').forEach(el=>{el.outerHTML=stationMap(host.get(),I);});host.icons();}
   /** Мягкий выход: показывается после сохранения в игровом пространстве. */
   function showSoftExit(spaceName:string){const stay=spaceName==='Комната Ри'?'room':'stars';const opts=[{v:stay,icon:'RotateCcw',label:`Остаться в «${esc(spaceName)}»`},{v:'learn',icon:'Compass',label:'Перейти к темам'},{v:'close',icon:'X',label:'Закончить и закрыть'}];replaceModal(`<div class="soft-exit"><div class="soft-exit-char">${ri('rest',true)}</div><h2 id="modal-title">${esc(spaceName)}: сохранено</h2><p class="muted">Выбор сохранён на этом устройстве. Что сделать дальше?</p><div class="soft-exit-options" role="group" aria-label="Что сделать дальше">${opts.map(o=>`<button class="soft-exit-btn" data-space="soft-exit-pick" data-value="${o.v}">${I(o.icon)} ${o.label}</button>`).join('')}</div></div>`);}
-  function roomDrawing(){const activity=getRoomActivity(room);return `<div class="room-canvas theme-${room.theme} palette-${room.palette}"><div class="room-window"><span>✦</span><b>☾</b></div><div class="room-wall-line"></div><div class="room-grid" aria-label="Девять мест в комнате">${Array.from({length:9},(_,slot)=>{const it=room.items.find(i=>i.slot===slot);const def=items.find(i=>i[0]===it?.kind);return `<button class="room-slot ${activeSlot===slot?'selected-slot':''}" data-space="room-place" data-value="${slot}" aria-label="Место ${slot+1}${def?', '+def[2]:', свободно'}${room.activity?' — рассмотреть':' — поставить предмет'}"><span style="transform:rotate(${(it?.rotation??0)*15}deg)">${def?roomObject(def[0]):''}</span></button>`;}).join('')}</div>${room.activity&&activity.available?`<div class="room-resident" style="left:${(activity.slot%3)*27+6}%;top:${Math.floor(activity.slot/3)*19+24}%" aria-label="Ри ${room.activity==='read'?'читает':room.activity==='tea'?'пьёт чай':'отдыхает'}">${ri(activity.pose)}${room.activity==='tea'?`<span class="resident-cup">${roomObject('cup')}</span>`:''}</div>`:''}</div>`;}
+  function roomDrawing(){const activity=getRoomActivity(room);return `<div class="room-canvas theme-${room.theme} palette-${room.palette}"><div class="room-window" aria-hidden="true"><span>✦</span><b>☾</b></div><div class="room-wall-line" aria-hidden="true"></div><div class="room-grid" role="grid" aria-label="Сетка комнаты 3 на 3 места">${Array.from({length:9},(_,slot)=>{const it=room.items.find(i=>i.slot===slot);const def=items.find(i=>i[0]===it?.kind);const row=Math.floor(slot/3)+1;const col=(slot%3)+1;const isCurrent=activeSlot===slot;const itemText=def?`${def[2]}, поворот ${(it?.rotation??0)*15}°`:'свободно';const actionHint=room.activity?'рассмотреть занятие':'Enter — поставить, Space — повернуть';const label=`Ряд ${row}, место ${col}: ${itemText}. ${actionHint}`;return `<button class="room-slot ${isCurrent?'selected-slot':''}" role="gridcell" data-space="room-place" data-value="${slot}" tabindex="${isCurrent?'0':'-1'}" aria-rowindex="${row}" aria-colindex="${col}" aria-selected="${isCurrent?'true':'false'}" aria-label="${esc(label)}"><span style="transform:rotate(${(it?.rotation??0)*15}deg)" aria-hidden="true">${def?roomObject(def[0]):''}</span></button>`;}).join('')}</div>${room.activity&&activity.available?`<div class="room-resident" style="left:${(activity.slot%3)*27+6}%;top:${Math.floor(activity.slot/3)*19+24}%" aria-label="Ри ${room.activity==='read'?'читает':room.activity==='tea'?'пьёт чай':'отдыхает'}">${ri(activity.pose)}${room.activity==='tea'?`<span class="resident-cup">${roomObject('cup')}</span>`:''}</div>`:''}</div>`;}
   function roomSnapshot(){roomHistory.push(structuredClone(room));if(roomHistory.length>30)roomHistory.shift();roomDirty=true;}
   function roomControls(){return `<div class="room-controls"><label>Обстановка<select id="room-theme">${['Вечер у окна','Светлая мастерская','Орбитальная каюта'].map((t,i)=>`<option value="${i}" ${room.theme===i?'selected':''}>${t}</option>`).join('')}</select></label><label>Палитра<select id="room-palette">${['Тёплый вечер','Утро','Ночное небо','Мятный свет'].map((t,i)=>`<option value="${i}" ${room.palette===i?'selected':''}>${t}</option>`).join('')}</select></label><div class="room-tools"><button class="btn small secondary" data-space="room-undo" ${roomHistory.length?'':'disabled'}>${I('RotateCcw')} Вернуть ход</button>${!room.activity?'<button class="btn small secondary" data-space="room-rotate">Повернуть вещь</button><button class="btn small secondary" data-space="room-remove">Убрать вещь</button>':''}</div></div>`;}
   function showRoom(){
@@ -164,12 +164,56 @@ export function createSpace(host:Host,root:HTMLElement) {
   root.addEventListener('click',e=>{const el=e.target as HTMLElement;const dialog=el.closest<HTMLDialogElement>('#modal');if(!dialog)return;const r=dialog.getBoundingClientRect();const outside=el===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(el.closest('[data-action="close"]')||outside){const dirty=unsavedArtifact();if(dirty){e.preventDefault();e.stopImmediatePropagation();offerSave(dirty);}}},true);
   root.addEventListener('cancel',e=>{const dirty=unsavedArtifact();if(dirty){e.preventDefault();offerSave(dirty);}},true);
   window.addEventListener('beforeunload',e=>{if(unsavedArtifact()){e.preventDefault();e.returnValue='';}});
+  root.addEventListener('keydown',e=>{
+    const el=(e.target as HTMLElement)?.closest<HTMLElement>('.room-slot');
+    if(!el)return;
+    const slot=Number(el.dataset.value);
+    if(!Number.isInteger(slot)||slot<0||slot>8)return;
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){
+      e.preventDefault();
+      let nextSlot=slot;
+      if(e.key==='ArrowLeft'&&slot%3>0)nextSlot=slot-1;
+      else if(e.key==='ArrowRight'&&slot%3<2)nextSlot=slot+1;
+      else if(e.key==='ArrowUp'&&slot>=3)nextSlot=slot-3;
+      else if(e.key==='ArrowDown'&&slot<=5)nextSlot=slot+3;
+      else if(e.key==='Home')nextSlot=Math.floor(slot/3)*3;
+      else if(e.key==='End')nextSlot=Math.floor(slot/3)*3+2;
+      if(nextSlot!==slot){
+        activeSlot=nextSlot;
+        const target=root.querySelector<HTMLButtonElement>(`.room-slot[data-value="${nextSlot}"]`);
+        if(target){
+          root.querySelectorAll<HTMLButtonElement>('.room-slot').forEach(s=>{
+            s.setAttribute('tabindex','-1');
+            s.classList.remove('selected-slot');
+            s.setAttribute('aria-selected','false');
+          });
+          target.setAttribute('tabindex','0');
+          target.classList.add('selected-slot');
+          target.setAttribute('aria-selected','true');
+          target.focus({preventScroll:true});
+        }
+      }
+    }else if(e.key===' '||e.code==='Space'){
+      e.preventDefault();
+      if(!GAMES_ENABLED){host.toast(GAMES_PAUSED_MESSAGE);return;}
+      activeSlot=slot;
+      const item=room.items.find(i=>i.slot===activeSlot);
+      if(item){
+        roomSnapshot();
+        item.rotation=(item.rotation+1)%4;
+        showRoom();
+        root.querySelector<HTMLElement>(`.room-slot[data-value="${activeSlot}"]`)?.focus({preventScroll:true});
+      }else{
+        host.toast('Сначала поставь предмет (Enter), затем его можно повернуть (Space).');
+      }
+    }
+  });
   root.addEventListener('change',e=>{const input=e.target as HTMLSelectElement;if(input.id==='mail-task'){mailSnapshot();mail=initialMail(Number(input.value));mailSelected=null;showMail();}if(input.hasAttribute('data-match-row')){matches[step]??=[];matches[step][Number(input.dataset.matchRow)]=input.value===''?-1:Number(input.value);submitted=false;document.querySelectorAll('.match-feedback').forEach(el=>el.remove());const next=document.querySelector<HTMLButtonElement>('[data-space=lesson-next]');if(next)next.innerHTML='Посмотреть объяснение '+I('ArrowRight');host.icons();}if(input.id==='sky-from'||input.id==='sky-to'){captureStar();if(input.id==='sky-from')skyFrom=Number(input.value);else skyTo=Number(input.value);skyRoute=null;skyAttempted=false;showStars(input.id);}if(input.id==='room-theme'||input.id==='room-palette'){roomSnapshot();if(input.id==='room-theme')room.theme=Number(input.value);else room.palette=Number(input.value);showRoom();}if(input.id==='star-color'){starSnapshot();stars.color=input.value;showStars('star-color');}if(input.id==='star-shape'){starSnapshot();stars={shape:Number(input.value),edges:[],title:''};starSelected=null;showHint=false;showStars('star-shape');}});
   root.addEventListener('input',e=>{if((e.target as HTMLElement).id==='star-title'){captureStar();const status=document.getElementById('star-save-status');const text=skySaveKey(stars)===skySaveKey(getSpace().stars)?'Небо сохранено.':'Есть изменения.';if(status&&status.textContent!==text)status.textContent=text;}});
   root.addEventListener('click',e=>{const canvas=(e.target as HTMLElement).closest<HTMLElement>('[data-custom-sky]');if(canvas&&!(e.target as HTMLElement).closest('button')){if(!GAMES_ENABLED){host.toast(GAMES_PAUSED_MESSAGE);return;}const rect=canvas.getBoundingClientRect();addStar(Math.max(5,Math.min(95,Math.round((e.clientX-rect.left)/rect.width*100))),Math.max(5,Math.min(95,Math.round((e.clientY-rect.top)/rect.height*100))));return;}const el=(e.target as HTMLElement).closest<HTMLElement>('[data-space]');if(!el)return;const action=el.dataset.space;if(isPausedGameAction(action)){host.toast(GAMES_PAUSED_MESSAGE);return;}const id=el.dataset.id??'';const value=el.dataset.value??'';
     switch(action){
       case 'artifact-return':if(value==='room')showRoom();else if(value==='stars')showStars();else showMail();break;
-      case 'artifact-discard':mail=structuredClone(getSpace().mail??initialMail());roomDirty=false;stars=structuredClone(getSpace().stars);host.close();break;
+      case 'artifact-discard':room=structuredClone(getSpace().room);mail=structuredClone(getSpace().mail??initialMail());roomDirty=false;stars=structuredClone(getSpace().stars);host.close();break;
       case 'artifact-save-close':if(saveSpace(s=>{if(value==='room')s.room=structuredClone(room);else if(value==='stars')s.stars=structuredClone(stars);else s.mail=structuredClone(mail);})){roomDirty=false;refreshStation();host.close();host.toast('Сохранено на устройстве.');}break;
       case 'mail':showNeighborIntro('bip');break;
       case 'mail-start':mail=structuredClone(getSpace().mail??initialMail());mailSelected=null;mailChecked=getMailFeedback(mail).done;mailHistory=[];showMail();break;
@@ -238,7 +282,7 @@ export function createSpace(host:Host,root:HTMLElement) {
       case 'museum-postcard':museumSelection=[Number(value)];showMuseum();break;
       case 'museum-explain':factIndex=museumKind==='memory'?0:museumKind==='attention'?2:3;showFact();break;
       case 'route-orbit-open':{const panel=document.getElementById('route-orbit-panel'),stage=document.getElementById('route-three-stage'),status=document.getElementById('route-three-status');if(!panel||!stage||!status)break;panel.hidden=false;el.setAttribute('aria-expanded','true');el.textContent='Скрыть объёмный маршрут';status.textContent='Готовим маршрут…';const currentProgress=getSpace().lessons;const currentNext=lessons.find(lesson=>!currentProgress.find(saved=>saved.id===lesson.id)?.completed)??lessons[0];const completedIndices=lessons.map((lesson,index)=>currentProgress.find(saved=>saved.id===lesson.id)?.completed?index:-1).filter(index=>index>=0);void openRouteView(stage,{total:lessons.length,completed:completedIndices,current:lessons.findIndex(lesson=>lesson.id===currentNext.id)}).then(ok=>{if(stage.isConnected&&!panel.hidden)status.textContent=ok?'Мятные точки — отмеченные темы, сиреневая — следующий шаг. Потяни карту пальцем или мышью.':'Список тем ниже работает без объёмной сцены.';});break;}
-      case 'soft-exit-pick':switch(value){case 'room':showRoom();break;case 'stars':showStars();break;case 'learn':host.close();(document.querySelector<HTMLElement>('[href="#learn"][data-nav="learn"]') as HTMLAnchorElement)?.click();break;case 'close':default:host.close();break;}break;
+      case 'soft-exit-pick':switch(value){case 'room':showRoom();break;case 'stars':showStars();break;case 'learn':host.close();location.hash='#learn';host.render();break;case 'close':default:host.close();break;}break;
       case 'route-orbit-close':disposeThreeView();{const panel=document.getElementById('route-orbit-panel'),trigger=document.querySelector<HTMLElement>('[data-space="route-orbit-open"]');if(panel)panel.hidden=true;if(trigger){trigger.setAttribute('aria-expanded','false');trigger.textContent='Посмотреть маршрут в объёме';trigger.focus({preventScroll:true});}break;}
     }
   });
