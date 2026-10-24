@@ -966,3 +966,109 @@ dialog::backdrop {
     transform: none !important;
   }
 }
+
+/* ── Научное позиционирование и 4 слоя ВКР ── */
+.research-framework {
+  margin-bottom: 24px;
+  background: var(--rd-paper);
+  border: 1.5px solid var(--rd-line);
+  border-radius: 18px;
+  padding: 22px 24px;
+}
+
+.research-framework .section-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.research-framework .section-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--rd-ink);
+}
+
+.research-lead {
+  font-size: 0.95rem;
+  color: var(--rd-ink-soft);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.research-layers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.research-layer-card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1.5px solid var(--rd-line);
+  background: var(--rd-paper-elevated, #fff);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.research-layer-card.layer-clinical { border-left: 4px solid #c97a7e; }
+.research-layer-card.layer-empirical { border-left: 4px solid var(--rd-mint-deep, #158f82); }
+.research-layer-card.layer-hypotheses { border-left: 4px solid #8e80b8; }
+.research-layer-card.layer-metaphor { border-left: 4px solid #d49e58; }
+
+.research-layer-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
+.layer-clinical .research-layer-badge { color: #a4484d; }
+.layer-empirical .research-layer-badge { color: #127c70; }
+.layer-hypotheses .research-layer-badge { color: #69579c; }
+.layer-metaphor .research-layer-badge { color: #9c6c24; }
+
+.research-layer-card h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: var(--rd-ink);
+}
+
+.research-layer-card p {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--rd-ink-soft);
+  margin: 0 0 10px 0;
+}
+
+.research-layer-card .layer-limit {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--rd-ink);
+  background: var(--rd-paper-deep, #f2f5f1);
+  padding: 6px 10px;
+  border-radius: 8px;
+  line-height: 1.4;
+  margin-top: auto;
+}
+
+.research-more-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--rd-mint-deep, #158f82);
+  text-decoration: none;
+}
+
+.research-more-link:hover {
+  text-decoration: underline;
+}
+

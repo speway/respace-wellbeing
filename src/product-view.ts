@@ -35,7 +35,52 @@ export function renderScience(visible:Fact[],favorites:string[],filter:string,on
   const featured=visible.find(f=>f.id==='fact6')??visible[0];
   const rest=visible.filter(f=>f.id!==featured?.id);
   const bookmark=(f:Fact)=>`<button class="icon-button" data-space="fact-favorite" data-id="${f.id}" aria-label="${favorites.includes(f.id)?'Убрать из сохранённых':'Сохранить'}: ${esc(f.title)}" aria-pressed="${favorites.includes(f.id)}">${I(favorites.includes(f.id)?'BookmarkCheck':'Bookmark')}</button>`;
-  return `<div class="page-heading"><div><h1>Любопытно, как это работает</h1><p>Память, внимание и игры. Небольшие истории с источниками.</p></div></div><div class="science-toolbar" role="group" aria-label="Темы научпопа">${['Все','Память','Внимание','Выбор','Эмоции','Видеоигры'].map(t=>`<button class="chip ${filter===t?'active':''}" data-space="fact-filter" data-value="${t}" aria-pressed="${filter===t}">${t}</button>`).join('')}<button class="chip ${onlyFavorites?'active':''}" data-space="favorites" aria-pressed="${onlyFavorites}">${I('Bookmark')} Сохранённое</button></div>
+  return `<div class="page-heading"><div><h1>Исследования и основания</h1><p>Проверяемые данные о мотивации, досуге и восприятии игр.</p></div></div>
+  <section class="panel research-framework" aria-labelledby="framework-title">
+    <div class="section-title">
+      <div>
+        <span class="eyebrow">Исследовательский прототип ВКР</span>
+        <h2 id="framework-title">Четыре слоя проекта: научная позиция и границы</h2>
+      </div>
+    </div>
+    <p class="research-lead">Респейс разрабатывается как дипломное исследование мотивации и переживаний в досуговой видеоигровой активности взрослых (18+). Чтобы не подменять факты метафорами, мы строго разделяем четыре слоя:</p>
+    <div class="research-layers-grid">
+      <article class="research-layer-card layer-clinical">
+        <div>
+          <span class="research-layer-badge">1. Клинический слой</span>
+          <h3>Диагностические границы</h3>
+          <p>МКБ-11 описывает игровое расстройство как стойкую утрату контроля и выраженную дезадаптацию (от 12 месяцев).</p>
+        </div>
+        <div class="layer-limit">Респейс не лечит, не ставит диагнозы и не заменяет психотерапевта.</div>
+      </article>
+      <article class="research-layer-card layer-empirical">
+        <div>
+          <span class="research-layer-badge">2. Эмпирический слой</span>
+          <h3>Рецензируемые данные</h3>
+          <p>Исследования мотивации (SDT) и переживаний (ДПД): автономия и качество вовлечённости важнее числа часов.</p>
+        </div>
+        <div class="layer-limit">Подтверждают связи в выборках, но не доказывают эффект сторонних приложений.</div>
+      </article>
+      <article class="research-layer-card layer-hypotheses">
+        <div>
+          <span class="research-layer-badge">3. Проектные гипотезы</span>
+          <h3>Решения автора Респейса</h3>
+          <p>Разделение шкал «усилие» и «усталость», мягкий выход (soft-exit), отказ от тайм-лимитов и streak-серий.</p>
+        </div>
+        <div class="layer-limit">Проектные гипотезы для проверки в ВКР; эффективность самого продукта ещё не исследовалась.</div>
+      </article>
+      <article class="research-layer-card layer-metaphor">
+        <div>
+          <span class="research-layer-badge">4. Бытовые метафоры</span>
+          <h3>Образы спокойного досуга</h3>
+          <p>Метафоры «тихой станции», «комнаты Ри» и «чая» создают бережный дидактический контекст.</p>
+        </div>
+        <div class="layer-limit">Иллюстративный язык перерыва, а не физиологическое воздействие или методика.</div>
+      </article>
+    </div>
+    <a href="#about" data-nav="about" class="research-more-link">Подробнее о методологии, выборках и ограничениях в «О проекте» ${I('ArrowRight')}</a>
+  </section>
+  <div class="science-toolbar" role="group" aria-label="Темы научпопа">${['Все','Память','Внимание','Выбор','Эмоции','Видеоигры'].map(t=>`<button class="chip ${filter===t?'active':''}" data-space="fact-filter" data-value="${t}" aria-pressed="${filter===t}">${t}</button>`).join('')}<button class="chip ${onlyFavorites?'active':''}" data-space="favorites" aria-pressed="${onlyFavorites}">${I('Bookmark')} Сохранённое</button></div>
     ${featured?`<div class="science-front"><article class="science-feature"><div class="science-feature-copy"><div class="reading-meta"><span>${featured.tag}</span>${bookmark(featured)}</div><h2>${esc(featured.title)}</h2><p>${esc(featured.text)}</p><button class="btn" data-space="fact" data-id="${featured.id}">Почитать об исследовании ${I('ArrowRight')}</button><span class="source-credit">${esc(featured.citation)}</span></div><div class="science-feature-art">${art('science')}</div></article><aside class="experiment-invitation">${ri('think')}<h2>Игровой музей на переработке</h2><p>Опыты вернутся только после проверки сценариев и доступности.</p><a href="#play" data-nav="play" class="btn secondary">Подробнее ${I('ArrowRight')}</a><small>Научные карточки и источники доступны здесь.</small></aside></div><section class="reading-list" aria-label="Ещё истории">${rest.map(f=>`<article class="reading-row"><span class="reading-symbol">${I(f.tag==='Память'?'BookOpen':f.tag==='Внимание'?'ScanEye':f.tag==='Видеоигры'?'Gamepad2':f.tag==='Выбор'?'Compass':'Heart')}</span><div><span class="reading-tag">${f.tag}</span><h2>${esc(f.title)}</h2><p>${esc(f.text)}</p><button class="text-button" data-space="fact" data-id="${f.id}">Почитать ${I('ArrowRight')}</button></div>${bookmark(f)}</article>`).join('')}</section>`:`<section class="collection-empty">${ri('read')}<h2>Здесь будут сохранённые истории</h2><p>Отметь закладкой карточку, к которой захочешь вернуться.</p><button class="btn secondary" data-space="favorites">Показать подборку</button></section>`}`;
 }
 
