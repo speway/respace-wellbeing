@@ -12,7 +12,8 @@
 .mail-clues li+li {margin-top:8px;}
 .mail-instruction {margin:19px 0 12px;color:#485b77;font-size:14px;line-height:1.5;}
 .mail-shelves {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;align-items:end;padding:10px 5px 0;}
-.mail-slot {display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:140px;border:2px solid transparent;border-radius:13px;background:none;padding:9px 7px 0;color:inherit;font:inherit;cursor:pointer;}
+.mail-slot {display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:140px;border:2px solid transparent;border-radius:13px;background:none;padding:9px 7px 0;color:inherit;font:inherit;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
+.mail-game button,.mail-game select {touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .mail-slot:hover {background:#f4f6fa;}
 .mail-slot[aria-pressed="true"] {border-color:#187f6e;background:#e8f8f4;}
 .mail-parcel {position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1/1;max-height:180px;width:100%;border:2px solid #6e635e;border-radius:9px;background:#edc9a8;box-shadow:inset 0 0 0 5px #f4d8be;overflow:hidden;}
@@ -26,7 +27,9 @@
 .mail-actions,.mail-ending {display:flex;flex-wrap:wrap;gap:12px;margin-top:21px;}
 .mail-ending {padding-top:18px;border-top:1px solid #e0e5ee;}
 .mail-game .btn {min-height:44px;max-width:100%;white-space:normal;font-size:14px;}
-.mail-game :is(button,select):focus-visible {outline:3px solid #151b46;outline-offset:4px;}
+.mail-game :is(button,select):focus-visible {outline:3px solid #151b46;outline-offset:3px;box-shadow:0 0 0 2px #ffffff;}
+.mail-slot:focus-visible {outline:3px solid #187f6e;outline-offset:3px;box-shadow:0 0 0 2px #ffffff,0 0 8px rgba(24,127,110,.35);}
+.mail-slot[aria-pressed="true"]:focus-visible {outline:3px solid #151b46;outline-offset:3px;box-shadow:0 0 0 2px #ffffff,0 0 10px rgba(21,27,70,.4);}
 .mail-game button:disabled {opacity:.55;cursor:default;}
 @media (max-width:520px) {
   .mail-neighbor {gap:12px;}

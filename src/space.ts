@@ -149,11 +149,11 @@ export function createSpace(host:Host,root:HTMLElement) {
   function showNeighborIntro(kind:'bip'|'nori'){
      const mailIntro=kind==='bip';replaceModal(`<div class="neighbor-intro">${neighborSprite(kind,1)}<h2 id="modal-title">${mailIntro?'Почта Бипа':'Дорожка Нори'}</h2><p>${mailIntro?'Бип разложил три посылки не по порядку. Подсказки помогут их расставить.':'Светлячок ждёт на другой стороне. Соедини дорожки, чтобы он добрался до четвёртой звезды.'}</p><button class="btn" data-space="${mailIntro?'mail-start':'nori-start'}">${mailIntro&&getSpace().mail?'Продолжить':mailIntro?'Помочь Бипу':'Помочь Нори'}</button><button class="text-button" data-action="close">Вернуться на станцию</button></div>`);
   }
-  function showMail(){
+  function showMail(preferredFocus?: string){
     const dialog=document.querySelector<HTMLDialogElement>('#modal');const scroll=dialog?.scrollTop??0;
     const active=document.activeElement as HTMLElement|null;const keep=active?.dataset.space;const value=active?.dataset.value;
     replaceModal(`${renderMail(mail,mailSelected,mailChecked,mailHistory.length>0)}<p class="mail-save-status" role="status">${JSON.stringify(mail)===JSON.stringify(getSpace().mail)?'Полка сохранена.':''}</p>`,true);
-    if(keep?.startsWith('mail-')){document.querySelector<HTMLElement>(`[data-space="${keep}"]${value!==undefined?`[data-value="${value}"]`:''}`)?.focus({preventScroll:true});if(dialog)dialog.scrollTop=scroll;}
+    let target=preferredFocus?document.querySelector<HTMLElement>(preferredFocus):null;if(!target&&keep?.startsWith('mail-')){target=document.querySelector<HTMLElement>(`[data-space="${keep}"]${value!==undefined?`[data-value="${value}"]`:''}`);}if(target&&!target.hasAttribute('disabled')){target.focus({preventScroll:true});}else if(target&&target.hasAttribute('disabled')){const fallback=document.querySelector<HTMLElement>('[data-space="mail-check"]')??document.querySelector<HTMLElement>('.mail-slot');fallback?.focus({preventScroll:true});}if(dialog)dialog.scrollTop=scroll;
   }
   function mailSnapshot(){mailHistory.push(structuredClone(mail));if(mailHistory.length>20)mailHistory.shift();mailChecked=false;}
   function unsavedArtifact(): 'room'|'stars'|'mail'|null {
@@ -266,20 +266,47 @@ export function createSpace(host:Host,root:HTMLElement) {
       }
       return;
     }
+    const mailSlot=(e.target as HTMLElement)?.closest<HTMLElement>('.mail-slot');
+    if(mailSlot){
+      const index=Number(mailSlot.dataset.value);
+      if(Number.isInteger(index)&&index>=0&&index<3){
+        if(['ArrowRight','ArrowDown'].includes(e.key)){
+          e.preventDefault();
+          const nextIndex=(index+1)%3;
+          root.querySelector<HTMLButtonElement>(`.mail-slot[data-value="${nextIndex}"]`)?.focus({preventScroll:true});
+        }else if(['ArrowLeft','ArrowUp'].includes(e.key)){
+          e.preventDefault();
+          const prevIndex=(index-1+3)%3;
+          root.querySelector<HTMLButtonElement>(`.mail-slot[data-value="${prevIndex}"]`)?.focus({preventScroll:true});
+        }else if(e.key==='Home'){
+          e.preventDefault();
+          root.querySelector<HTMLButtonElement>('.mail-slot[data-value="0"]')?.focus({preventScroll:true});
+        }else if(e.key==='End'){
+          e.preventDefault();
+          root.querySelector<HTMLButtonElement>('.mail-slot[data-value="2"]')?.focus({preventScroll:true});
+        }else if(e.key==='Escape'&&mailSelected!==null){
+          e.preventDefault();
+          e.stopPropagation();
+          mailSelected=null;
+          showMail(`.mail-slot[data-value="${index}"]`);
+        }
+      }
+      return;
+    }
   });
-  root.addEventListener('change',e=>{const input=e.target as HTMLSelectElement;if(input.id==='mail-task'){mailSnapshot();mail=initialMail(Number(input.value));mailSelected=null;showMail();}if(input.hasAttribute('data-match-row')){matches[step]??=[];matches[step][Number(input.dataset.matchRow)]=input.value===''?-1:Number(input.value);submitted=false;document.querySelectorAll('.match-feedback').forEach(el=>el.remove());const next=document.querySelector<HTMLButtonElement>('[data-space=lesson-next]');if(next)next.innerHTML='Посмотреть объяснение '+I('ArrowRight');host.icons();}if(input.id==='sky-from'||input.id==='sky-to'){captureStar();if(input.id==='sky-from')skyFrom=Number(input.value);else skyTo=Number(input.value);skyRoute=null;skyAttempted=false;showStars(input.id);}if(input.id==='room-theme'||input.id==='room-palette'){roomSnapshot();if(input.id==='room-theme')room.theme=Number(input.value);else room.palette=Number(input.value);showRoom();}if(input.id==='star-color'){starSnapshot();stars.color=input.value;showStars('star-color');}if(input.id==='star-shape'){starSnapshot();stars={shape:Number(input.value),edges:[],title:''};starSelected=null;showHint=false;showStars('star-shape');}});
+  root.addEventListener('change',e=>{const input=e.target as HTMLSelectElement;if(input.id==='mail-task'){if(!GAMES_ENABLED){host.toast(GAMES_PAUSED_MESSAGE);return;}mailSnapshot();mail=initialMail(Number(input.value));mailSelected=null;showMail('#mail-task');}if(input.hasAttribute('data-match-row')){matches[step]??=[];matches[step][Number(input.dataset.matchRow)]=input.value===''?-1:Number(input.value);submitted=false;document.querySelectorAll('.match-feedback').forEach(el=>el.remove());const next=document.querySelector<HTMLButtonElement>('[data-space=lesson-next]');if(next)next.innerHTML='Посмотреть объяснение '+I('ArrowRight');host.icons();}if(input.id==='sky-from'||input.id==='sky-to'){captureStar();if(input.id==='sky-from')skyFrom=Number(input.value);else skyTo=Number(input.value);skyRoute=null;skyAttempted=false;showStars(input.id);}if(input.id==='room-theme'||input.id==='room-palette'){roomSnapshot();if(input.id==='room-theme')room.theme=Number(input.value);else room.palette=Number(input.value);showRoom();}if(input.id==='star-color'){starSnapshot();stars.color=input.value;showStars('star-color');}if(input.id==='star-shape'){starSnapshot();stars={shape:Number(input.value),edges:[],title:''};starSelected=null;showHint=false;showStars('star-shape');}});
   root.addEventListener('input',e=>{if((e.target as HTMLElement).id==='star-title'){captureStar();const status=document.getElementById('star-save-status');const text=skySaveKey(stars)===skySaveKey(getSpace().stars)?'Небо сохранено.':'Есть изменения.';if(status&&status.textContent!==text)status.textContent=text;}});
   root.addEventListener('click',e=>{const canvas=(e.target as HTMLElement).closest<HTMLElement>('[data-custom-sky]');if(canvas&&!(e.target as HTMLElement).closest('button')){if(!GAMES_ENABLED){host.toast(GAMES_PAUSED_MESSAGE);return;}const rect=canvas.getBoundingClientRect();addStar(Math.max(5,Math.min(95,Math.round((e.clientX-rect.left)/rect.width*100))),Math.max(5,Math.min(95,Math.round((e.clientY-rect.top)/rect.height*100))));return;}const el=(e.target as HTMLElement).closest<HTMLElement>('[data-space]');if(!el)return;const action=el.dataset.space;if(isPausedGameAction(action)){host.toast(GAMES_PAUSED_MESSAGE);return;}const id=el.dataset.id??'';const value=el.dataset.value??'';
     switch(action){
-      case 'artifact-return':if(value==='room')showRoom();else if(value==='stars')showStars();else showMail();break;
+      case 'artifact-return':if(value==='room')showRoom();else if(value==='stars')showStars();else showMail('.mail-slot');break;
       case 'artifact-discard':room=structuredClone(getSpace().room);mail=structuredClone(getSpace().mail??initialMail());roomDirty=false;stars=structuredClone(getSpace().stars);host.close();break;
       case 'artifact-save-close':if(saveSpace(s=>{if(value==='room')s.room=structuredClone(room);else if(value==='stars')s.stars=structuredClone(stars);else s.mail=structuredClone(mail);})){roomDirty=false;refreshStation();host.close();host.toast('Сохранено на устройстве.');}break;
       case 'mail':showNeighborIntro('bip');break;
-      case 'mail-start':mail=structuredClone(getSpace().mail??initialMail());mailSelected=null;mailChecked=getMailFeedback(mail).done;mailHistory=[];showMail();break;
-      case 'mail-slot':if(mailSelected===null)mailSelected=Number(value);else{mailSnapshot();mail=swapMail(mail,mailSelected,Number(value));mailSelected=null;}showMail();break;
-      case 'mail-check':mailChecked=true;showMail();break;
-      case 'mail-save':if(saveSpace(s=>{s.mail=structuredClone(mail);})){showMail();host.toast('Полка сохранена.');}break;
-      case 'mail-undo':{const before=mailHistory.pop();if(before){mail=before;mailSelected=null;mailChecked=false;showMail();}break;}
+      case 'mail-start':mail=structuredClone(getSpace().mail??initialMail());mailSelected=null;mailChecked=getMailFeedback(mail).done;mailHistory=[];showMail('.mail-slot');break;
+      case 'mail-slot':if(mailSelected===null){mailSelected=Number(value);showMail(`.mail-slot[data-value="${value}"]`);}else{mailSnapshot();const targetSlot=Number(value);mail=swapMail(mail,mailSelected,targetSlot);mailSelected=null;mailChecked=false;showMail(`.mail-slot[data-value="${targetSlot}"]`);}break;
+      case 'mail-check':mailChecked=true;showMail('[data-space="mail-check"]');break;
+      case 'mail-save':if(saveSpace(s=>{s.mail=structuredClone(mail);})){showMail('[data-space="mail-save"]');host.toast('Полка сохранена.');}break;
+      case 'mail-undo':{const before=mailHistory.pop();if(before){mail=before;mailSelected=null;mailChecked=false;showMail(mailHistory.length>0?'[data-space="mail-undo"]':'[data-space="mail-check"]');}break;}
       case 'nori':showNeighborIntro('nori');break;
       case 'nori-start':skyGuest=true;stars={shape:3,points:[[15,72],[38,33],[62,68],[85,28]],edges:[[0,1],[2,3]],title:''};skyGuestBaseline=skySaveKey(stars);skyFrom=0;skyTo=3;skyRoute=null;skyStep=0;skyAttempted=false;skyTopology='';starHistory=[];starFuture=[];starSelected=null;showStars();break;
       case 'lesson':openLesson(id);break;
