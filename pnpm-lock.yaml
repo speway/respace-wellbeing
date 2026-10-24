@@ -9,20 +9,20 @@ importers:
   .:
     dependencies:
       '@capacitor/android':
-        specifier: ^8.0.0
+        specifier: ^8.5.3
         version: 8.5.3(@capacitor/core@8.5.3)
       '@capacitor/app':
-        specifier: 8.0.0
-        version: 8.0.0(@capacitor/core@8.5.3)
+        specifier: ^8.1.2
+        version: 8.1.2(@capacitor/core@8.5.3)
       '@capacitor/core':
-        specifier: ^8.0.0
+        specifier: ^8.5.3
         version: 8.5.3
       '@capacitor/ios':
-        specifier: ^8.0.0
+        specifier: ^8.5.3
         version: 8.5.3(@capacitor/core@8.5.3)
       '@capacitor/splash-screen':
-        specifier: 8.0.0
-        version: 8.0.0(@capacitor/core@8.5.3)
+        specifier: ^8.0.2
+        version: 8.0.2(@capacitor/core@8.5.3)
       '@fontsource/nunito':
         specifier: ^5.3.0
         version: 5.3.0
@@ -40,7 +40,7 @@ importers:
         version: 0.186.1
     devDependencies:
       '@capacitor/cli':
-        specifier: ^8.0.0
+        specifier: ^8.5.3
         version: 8.5.3
       '@types/node':
         specifier: ^26.6.5
@@ -144,8 +144,8 @@ packages:
     peerDependencies:
       '@capacitor/core': ^8.5.0
 
-  '@capacitor/app@8.0.0':
-    resolution: {integrity: sha512-OwzIkUs4w433Bu9WWAEbEYngXEfJXZ9Wmdb8eoaqzYBgB0W9/3Ed/mh6sAYPNBAZlpyarmewgP7Nb+d3Vrh+xA==}
+  '@capacitor/app@8.1.2':
+    resolution: {integrity: sha512-uKBlsrXH0IdvUn69e/KKYbZ32A06pcrUdG8LWuZ/6y33YMXZXLEEdNSwl+jKS/SrsTWqnePs8EqSWaiQM3mUGA==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -162,8 +162,8 @@ packages:
     peerDependencies:
       '@capacitor/core': ^8.5.0
 
-  '@capacitor/splash-screen@8.0.0':
-    resolution: {integrity: sha512-zkFdUSd6C6gd3s3bIEgtO3DVjfwpaX5mmWU9er8xYTg47zr2toEkGtfyE6CPhhErG09fl4rCqrK5DfnGrXLh9w==}
+  '@capacitor/splash-screen@8.0.2':
+    resolution: {integrity: sha512-0C6rYScr13WfAE9nPl4ScOQynmjFv9NT3Th+RZkD4ezYHmER6mcl1/lDYsv7jg3Rj3FOvLrlTlmNkUrr83kZzQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -1185,7 +1185,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.3
 
-  '@capacitor/app@8.0.0(@capacitor/core@8.5.3)':
+  '@capacitor/app@8.1.2(@capacitor/core@8.5.3)':
     dependencies:
       '@capacitor/core': 8.5.3
 
@@ -1220,7 +1220,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.3
 
-  '@capacitor/splash-screen@8.0.0(@capacitor/core@8.5.3)':
+  '@capacitor/splash-screen@8.0.2(@capacitor/core@8.5.3)':
     dependencies:
       '@capacitor/core': 8.5.3
 
