@@ -1,6 +1,6 @@
-# Проверка интерфейса v2 — 14 октября 2026
+# Историческая проверка интерфейса v2 — 14 октября 2026
 
-Опубликовано: https://respace-wellbeing.vercel.app. Последняя проверенная публикация `dpl_9g3eCKEVUyLHjR8JU2SkRELtKRxb`, Vercel Ready. В браузере загружен `/assets/index-BzKqyIlt.js`, основная кнопка имеет цвет `rgb(20,127,116)`; это последняя сборка с исправлением контраста.
+Этот отчёт фиксирует проверку старой публикации от 14 октября: https://respace-wellbeing.vercel.app, deployment `dpl_9g3eCKEVUyLHjR8JU2SkRELtKRxb`. На 24 октября Git-подключённая production-публикация репозитория — [respace-wellbeing-iqd2.vercel.app](https://respace-wellbeing-iqd2.vercel.app), deployment `dpl_9b1DkievkCUbvuvH76Pc4zaBXNLF`, commit `344e03608b5d0e1658a0e88c771d9e9547534313`, состояние Vercel `READY`. Старый адрес остаётся привязан к отдельному CLI-проекту и не обновляется push-коммитами. Таблица ниже — исторические результаты v2, а не повторная проверка новой публикации.
 
 ## Сценарии и подтверждения
 
