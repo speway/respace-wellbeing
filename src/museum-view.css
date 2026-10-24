@@ -42,6 +42,12 @@
 }
 
 .museum-experiment .museum-word-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.museum-experiment :is(button, a),
+.museum-save-row button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .museum-experiment :is(.museum-word, .museum-shape, .museum-postcard) {
   display: flex;
   flex-direction: column;
@@ -62,6 +68,8 @@
   line-height: 1.4;
   text-align: left;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .museum-experiment .museum-word { background: #f0edff; padding: 17px 15px; }
@@ -74,7 +82,13 @@
 }
 .museum-experiment :is(button, a):focus-visible {
   outline: 3px solid #151b46;
-  outline-offset: 4px;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+.museum-experiment :is(.museum-word, .museum-shape, .museum-postcard)[aria-pressed="true"]:focus-visible {
+  outline: 3px solid #126c60;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 8px rgba(18, 108, 96, 0.4);
 }
 
 .museum-experiment .museum-selection {
@@ -102,6 +116,14 @@
 .museum-experiment .museum-shape.color-blue svg > * { fill: #83c4ea; }
 .museum-experiment .museum-shape.color-peach svg > * { fill: #f1bd8a; }
 .museum-experiment .museum-shape-name { font-size: 13px; line-height: 1.4; }
+.museum-experiment .museum-kbd-tip {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #52647b;
+}
+
 .museum-experiment .museum-feedback {
   min-height: 48px;
   margin: 18px 0;
@@ -110,6 +132,15 @@
   color: #3b4f70;
   font-size: 14px;
   line-height: 1.6;
+}
+
+.museum-experiment .museum-disclaimer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px dashed #dde4ef;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #6a7b95;
 }
 
 .museum-experiment .museum-actions { display: flex; flex-wrap: wrap; gap: 12px; }

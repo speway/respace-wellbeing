@@ -14,7 +14,7 @@ const gameActions = new Set([
   'sky-next', 'sky-route', 'nori', 'nori-start',
   'mail', 'mail-check', 'mail-save', 'mail-slot', 'mail-start', 'mail-task', 'mail-undo',
   'story', 'story-back', 'story-choice', 'story-restart',
-  'museum', 'museum-explain', 'museum-more', 'museum-postcard', 'museum-resume', 'museum-rule', 'museum-save', 'museum-shape', 'museum-start', 'museum-word',
+  'museum', 'museum-back', 'museum-explain', 'museum-more', 'museum-postcard', 'museum-resume', 'museum-rule', 'museum-save', 'museum-shape', 'museum-start', 'museum-word',
   'artifact-discard', 'artifact-return', 'artifact-save-close',
 ]);
 

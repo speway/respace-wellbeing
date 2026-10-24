@@ -53,12 +53,13 @@ function memoryView(selected: number[]): string {
   const words = ['Соприкоснулись', 'Столкнулись'];
   const sentence = chosen === undefined ? 'Кораблики встретились у причала.' : `Кораблики ${chosen === 0 ? 'соприкоснулись' : 'столкнулись'} у причала.`;
   return `<section class="museum-experiment museum-memory" aria-label="Один эпизод, два описания">
-    <p class="museum-instruction">Выбери, как описать эту сцену. Изменится ли впечатление от одного слова?</p>
+    <p class="museum-instruction">Выбери, как описать эту сцену. Изменится ли впечатление от одного слова?<br><span id="museum-words-kbd" class="museum-kbd-tip small-text muted">Клавиатура: стрелки — выбор слова; Enter или Пробел — применить; Home/End — первое/последнее.</span></p>
     <figure class="museum-boats"><div role="img" aria-label="Два целых кораблика рядом у причала, спокойная вода">${boats()}</div><figcaption>Кораблики на рисунке не меняются.</figcaption></figure>
     <p class="museum-narration" aria-live="polite">«${sentence}»</p>
-    <div class="museum-word-options" role="group" aria-label="Глагол для описания">${words.map((word, i) => `<button type="button" class="museum-word" data-space="museum-word" data-value="${i}" aria-pressed="${chosen === i}">${word}<span class="museum-selection">${chosen === i ? 'Выбрано' : 'Выбрать'}</span></button>`).join('')}</div>
-    <p id="museum-feedback" class="museum-feedback" role="status">${chosen === undefined ? 'Нажми на оба слова и сравни.' : 'Сцена та же, изменилось только описание. Как теперь звучит эта история?'}</p>
+    <div class="museum-word-options" role="group" aria-label="Глагол для описания" aria-describedby="museum-words-kbd">${words.map((word, i) => `<button type="button" class="museum-word" data-space="museum-word" data-value="${i}" aria-label="Глагол «${word}»${chosen === i ? ' (выбран)' : ''}. Нажми Enter или Пробел, чтобы выбрать" aria-pressed="${chosen === i}">${word}<span class="museum-selection">${chosen === i ? 'Выбрано' : 'Выбрать'}</span></button>`).join('')}</div>
+    <p id="museum-feedback" class="museum-feedback" role="status" aria-live="polite">${chosen === undefined ? 'Нажми на оба слова и сравни.' : 'Сцена та же, изменилось только описание. Как теперь звучит эта история?'}</p>
     <div class="museum-actions">${explanationButton()}</div>
+    <p class="small-text muted museum-disclaimer">Научно-популярная иллюстрация на вымышленном примере. Не является тестом способностей, оценкой или доказательством эффективности игры.</p>
   </section>`;
 }
 
@@ -72,15 +73,16 @@ function attentionView(stage: number, selected: number[]): string {
       ? `Выбранные фигуры ${byColor ? 'синие' : 'круглые'}. `
       : `В выборе есть ${byColor ? 'персиковая фигура' : 'квадрат'}. Проверь правило ещё раз. Выбор можно отменить.`;
   return `<section class="museum-experiment museum-attention" aria-label="Смена правила">
-    <p class="museum-instruction">${byColor ? 'Теперь ищем по цвету.' : 'Сначала выбери по форме.'} Нажми на <strong>${byColor ? 'синие фигуры' : 'круглые фигуры'}</strong>.</p>
-    <div class="museum-shapes" role="group" aria-label="Шесть фигур">${Array.from({length: 6}, (_, i) => {
+    <p class="museum-instruction">${byColor ? 'Теперь ищем по цвету.' : 'Сначала выбери по форме.'} Нажми на <strong>${byColor ? 'синие фигуры' : 'круглые фигуры'}</strong>.<br><span id="museum-shapes-kbd" class="museum-kbd-tip small-text muted">Клавиатура: стрелки — переход по фигурам; Enter или Пробел — переключить выбор; Home/End — первая/последняя.</span></p>
+    <div class="museum-shapes" role="group" aria-label="Шесть фигур" aria-describedby="museum-shapes-kbd">${Array.from({length: 6}, (_, i) => {
       const picked = selected.includes(i);
       const round = i % 2 === 0;
       const blue = i % 3 === 0;
-      return `<button type="button" class="museum-shape shape-${i % 2} color-${blue ? 'blue' : 'peach'}" data-space="museum-shape" data-value="${i}" aria-label="${round ? 'Круг' : 'Квадрат'}, ${blue ? 'синий' : 'персиковый'}, фигура ${i + 1}" aria-pressed="${picked}"><svg viewBox="0 0 100 90" aria-hidden="true" focusable="false">${round ? '<circle cx="50" cy="43" r="28"/>' : '<rect x="23" y="16" width="54" height="54" rx="4"/>'}</svg><span class="museum-shape-name">${round ? 'Круг' : 'Квадрат'} · ${blue ? 'синий' : 'персиковый'}</span><span class="museum-selection">${picked ? 'Выбрано' : 'Выбрать'}</span></button>`;
+      return `<button type="button" class="museum-shape shape-${i % 2} color-${blue ? 'blue' : 'peach'}" data-space="museum-shape" data-value="${i}" aria-label="${round ? 'Круг' : 'Квадрат'}, ${blue ? 'синий' : 'персиковый'}, фигура ${i + 1}${picked ? ' (выбрана)' : ''}. Нажми Enter или Пробел, чтобы ${picked ? 'отменить выбор' : 'выбрать'}" aria-pressed="${picked}"><svg viewBox="0 0 100 90" aria-hidden="true" focusable="false">${round ? '<circle cx="50" cy="43" r="28"/>' : '<rect x="23" y="16" width="54" height="54" rx="4"/>'}</svg><span class="museum-shape-name">${round ? 'Круг' : 'Квадрат'} · ${blue ? 'синий' : 'персиковый'}</span><span class="museum-selection">${picked ? 'Выбрано' : 'Выбрать'}</span></button>`;
     }).join('')}</div>
-    <p id="museum-feedback" class="museum-feedback" role="status">${feedback}</p>
+    <p id="museum-feedback" class="museum-feedback" role="status" aria-live="polite">${feedback}</p>
     <div class="museum-actions">${!byColor ? '<button type="button" class="btn" data-space="museum-rule">Теперь выбрать по цвету</button>' : ''}${explanationButton()}</div>
+    <p class="small-text muted museum-disclaimer">Научно-популярная иллюстрация на вымышленном примере. Не является тестом способностей, оценкой или доказательством эффективности игры.</p>
   </section>`;
 }
 
@@ -89,11 +91,12 @@ function choiceView(stage: number, selected: number[]): string {
   const chosen = selected.slice().reverse().find(value => Number.isInteger(value) && value >= 0 && value < count);
   const card = chosen === undefined ? undefined : postcards[chosen];
   return `<section class="museum-experiment museum-choice" aria-label="Выбор открытки">
-    <p class="museum-instruction">${stage > 1 ? 'На полке теперь девять открыток. Первые три на прежних местах.' : 'На полке три открытки со станции.'} Выбери одну, чтобы рассмотреть поближе.</p>
-    <div class="museum-postcards" role="group" aria-label="Открытки со станции">${postcards.slice(0, count).map((postcard, i) => `<button type="button" class="museum-postcard" data-space="museum-postcard" data-value="${i}" aria-label="${postcard.name}" aria-pressed="${chosen === i}"><span class="museum-postcard-picture">${postcardArt(i)}</span><span class="museum-postcard-name">${postcard.name}</span><span class="museum-selection">${chosen === i ? 'Выбрано' : 'Рассмотреть'}</span></button>`).join('')}</div>
+    <p class="museum-instruction">${stage > 1 ? 'На полке теперь девять открыток. Первые три на прежних местах.' : 'На полке три открытки со станции.'} Выбери одну, чтобы рассмотреть поближе.<br><span id="museum-postcards-kbd" class="museum-kbd-tip small-text muted">Клавиатура: стрелки — выбор открытки; Enter или Пробел — рассмотреть; Home/End — первая/последняя.</span></p>
+    <div class="museum-postcards" role="group" aria-label="Открытки со станции" aria-describedby="museum-postcards-kbd">${postcards.slice(0, count).map((postcard, i) => `<button type="button" class="museum-postcard" data-space="museum-postcard" data-value="${i}" aria-label="Открытка ${i + 1} из ${count}: «${postcard.name}»${chosen === i ? ' (выбрана)' : ''}. Нажми Enter или Пробел, чтобы рассмотреть" aria-pressed="${chosen === i}"><span class="museum-postcard-picture">${postcardArt(i)}</span><span class="museum-postcard-name">${postcard.name}</span><span class="museum-selection">${chosen === i ? 'Выбрано' : 'Рассмотреть'}</span></button>`).join('')}</div>
     ${card && chosen !== undefined ? `<figure class="museum-chosen-postcard"><div role="img" aria-label="${card.name}">${postcardArt(chosen)}</div><figcaption><strong>${card.name}</strong><span>${card.caption}</span></figcaption></figure>` : ''}
-    <p id="museum-feedback" class="museum-feedback" role="status">${card ? `Ты выбрал открытку «${card.name}». ${stage > 1 ? 'Поменялось ли что-нибудь, когда вариантов стало больше?' : 'Можно выбрать другую или добавить открытки.'}` : 'Выбери открытку или посмотри объяснение.'}</p>
+    <p id="museum-feedback" class="museum-feedback" role="status" aria-live="polite">${card ? `Ты выбрал открытку «${card.name}». ${stage > 1 ? 'Поменялось ли что-нибудь, когда вариантов стало больше?' : 'Можно выбрать другую или добавить открытки.'}` : 'Выбери открытку или посмотри объяснение.'}</p>
     <div class="museum-actions">${stage <= 1 ? '<button type="button" class="btn" data-space="museum-more">Добавить ещё шесть открыток</button>' : ''}${explanationButton()}</div>
+    <p class="small-text muted museum-disclaimer">Научно-популярная иллюстрация на вымышленном примере. Не является тестом способностей, оценкой или доказательством эффективности игры.</p>
   </section>`;
 }
 

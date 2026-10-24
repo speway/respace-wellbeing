@@ -32,7 +32,7 @@ export function createSpace(host:Host,root:HTMLElement) {
   let skyGuest=false;let skyGuestBaseline='';let mail=initialMail();let mailSelected:number|null=null;let mailChecked=false;let mailHistory:MailState[]=[];
   let skyFrom=0;let skyTo=1;let skyRoute:number[]|null=null;let skyStep=0;let skyAttempted=false;let skyTopology='';
   let storyStage=0;let storySelections:number[]=[];
-  let factIndex=0;let factFilter='Все';let onlyFavorites=false;let museumStage=0;let museumKind:'memory'|'attention'|'choice'='memory';let museumSelection:number[]=[];
+  let factIndex=0;let factFilter='Все';let onlyFavorites=false;let factFromMuseum=false;let museumStage=0;let museumKind:'memory'|'attention'|'choice'='memory';let museumSelection:number[]=[];
   function mascot(small=false){return ri(small?'read':'wave',small);}
   function homeTiles(){return `<section class="space-doors"><a href="#learn" data-nav="learn" class="space-door sage">${I('Compass')}<strong>Разобраться</strong><span>Короткие темы на выбор</span></a><a href="#play" data-nav="play" class="space-door peach">${I('Gamepad2')}<strong>Поиграть</strong><span>Почта, комната и звёзды</span></a><a href="#science" data-nav="science" class="space-door lavender">${I('Telescope')}<strong>Любопытно</strong><span>Идеи из психологии и науки</span></a></section>`;}
   function coursePage(){return renderCourse(host.get(),I);}
@@ -141,10 +141,19 @@ export function createSpace(host:Host,root:HTMLElement) {
   }
   function visibleFacts(){return facts.filter(f=>(factFilter==='Все'||f.tag===factFilter)&&(!onlyFavorites||getSpace().favorites.includes(f.id)));}
   function sciencePage(){return renderScience(visibleFacts(),getSpace().favorites,factFilter,onlyFavorites,I);}
-  function showFact(){const f=facts[factIndex];replaceModal(`<p class="eyebrow">${f.tag} · КАРТОЧКА ${factIndex+1} ИЗ ${facts.length}</p><h2 id="modal-title">${esc(f.title)}</h2><p class="fact-reading">${esc(f.text)}</p><div class="fact-limit">${I('Info')} ${esc(f.limit)}</div><details class="fact-details" open><summary>Что исследовали</summary><p>${esc(f.detail)}</p><a href="${f.url}" target="_blank" rel="noopener noreferrer">${esc(f.citation)} ${I('ArrowUpRight')}</a></details><div class="modal-actions"><button class="btn secondary" data-space="fact-favorite" data-id="${f.id}">${I(getSpace().favorites.includes(f.id)?'BookmarkCheck':'Bookmark')} ${getSpace().favorites.includes(f.id)?'В избранном':'Сохранить'}</button><button class="btn" data-space="fact-next">${factIndex===facts.length-1?'Закончить':'Следующая'} ${I('ArrowRight')}</button></div><button class="text-button" data-action="close">Закончить здесь</button>`,true);}
-   function showMuseum(){const names={memory:'Одно событие — два описания',attention:'Правило меняется',choice:'Три или девять вариантов'};let body='';if(museumStage===0){body=`<p class="muted">С какого опыта начнём?</p><div class="lesson-options">${getSpace().museum?'<button class="btn secondary" data-space="museum-resume">Вернуться к сохранённому</button>':''}${Object.entries(names).map(([id,n])=>`<button class="lesson-option" data-space="museum-start" data-id="${id}">${n} ${I('ArrowRight')}</button>`).join('')}</div>`;}
-    else body=renderMuseumExperiment(museumKind,museumStage,museumSelection)+`<div class="museum-save-row"><button class="text-button" data-space="museum-save">Сохранить экспонат</button><span id="museum-save-status" class="small-text" role="status">${JSON.stringify(getSpace().museum)===JSON.stringify({kind:museumKind,stage:museumStage,selected:museumSelection})?'Экспонат сохранён.':''}</span></div>`;
-     replaceModal(`<h2 id="modal-title">${museumStage===0?'Музей наблюдений':names[museumKind as keyof typeof names]}</h2>${body}`,true);
+  function showFact(){const f=facts[factIndex];replaceModal(`<p class="eyebrow">${f.tag} · КАРТОЧКА ${factIndex+1} ИЗ ${facts.length}</p><h2 id="modal-title">${esc(f.title)}</h2><p class="fact-reading">${esc(f.text)}</p><div class="fact-limit">${I('Info')} ${esc(f.limit)}</div><details class="fact-details" open><summary>Что исследовали</summary><p>${esc(f.detail)}</p><a href="${f.url}" target="_blank" rel="noopener noreferrer">${esc(f.citation)} ${I('ArrowUpRight')}</a></details><div class="modal-actions"><button class="btn secondary" data-space="fact-favorite" data-id="${f.id}">${I(getSpace().favorites.includes(f.id)?'BookmarkCheck':'Bookmark')} ${getSpace().favorites.includes(f.id)?'В избранном':'Сохранить'}</button><button class="btn" data-space="fact-next">${factIndex===facts.length-1?'Закончить':'Следующая'} ${I('ArrowRight')}</button></div>${factFromMuseum&&museumStage>0?'<button class="text-button" data-space="museum-back">Вернуться к экспонату</button> ':''}<button class="text-button" data-action="close">Закончить здесь</button>`,true);}
+   function showMuseum(preferredFocus?: string){
+    const dialog=document.querySelector<HTMLDialogElement>('#modal');const scroll=dialog?.scrollTop??0;
+    const active=document.activeElement as HTMLElement|null;const keep=active?.dataset.space;const value=active?.dataset.value;const id=active?.dataset.id;
+    const names={memory:'Одно событие — два описания',attention:'Правило меняется',choice:'Три или девять вариантов'};let body='';
+    if(museumStage===0){body=`<p class="muted">С какого опыта начнём?</p><div class="lesson-options">${getSpace().museum?'<button class="btn secondary" data-space="museum-resume">Вернуться к сохранённому</button>':''}${Object.entries(names).map(([menuId,n])=>`<button class="lesson-option" data-space="museum-start" data-id="${menuId}">${n} ${I('ArrowRight')}</button>`).join('')}</div>`;}
+    else body=renderMuseumExperiment(museumKind,museumStage,museumSelection)+`<div class="museum-save-row"><button class="text-button" data-space="museum-save">Сохранить экспонат</button><button class="text-button" data-space="museum">К выбору экспоната</button><span id="museum-save-status" class="small-text" role="status">${JSON.stringify(getSpace().museum)===JSON.stringify({kind:museumKind,stage:museumStage,selected:museumSelection})?'Экспонат сохранён.':''}</span></div>`;
+    replaceModal(`<h2 id="modal-title">${museumStage===0?'Музей наблюдений':names[museumKind as keyof typeof names]}</h2>${body}`,true);
+    let target=preferredFocus?document.querySelector<HTMLElement>(preferredFocus):null;
+    if(!target&&keep?.startsWith('museum')){target=document.querySelector<HTMLElement>(`[data-space="${keep}"]${value!==undefined?`[data-value="${value}"]`:''}${id!==undefined?`[data-id="${id}"]`:''}`);}
+    if(!target){target=document.querySelector<HTMLElement>('.museum-word, .museum-shape, .museum-postcard, .lesson-option, [data-space="museum-resume"]');}
+    if(target&&!target.hasAttribute('disabled')){target.focus({preventScroll:true});}else{document.querySelector<HTMLElement>('#modal-title')?.focus({preventScroll:true});}
+    if(dialog)dialog.scrollTop=scroll;
   }
   function showNeighborIntro(kind:'bip'|'nori'){
      const mailIntro=kind==='bip';replaceModal(`<div class="neighbor-intro">${neighborSprite(kind,1)}<h2 id="modal-title">${mailIntro?'Почта Бипа':'Дорожка Нори'}</h2><p>${mailIntro?'Бип разложил три посылки не по порядку. Подсказки помогут их расставить.':'Светлячок ждёт на другой стороне. Соедини дорожки, чтобы он добрался до четвёртой звезды.'}</p><button class="btn" data-space="${mailIntro?'mail-start':'nori-start'}">${mailIntro&&getSpace().mail?'Продолжить':mailIntro?'Помочь Бипу':'Помочь Нори'}</button><button class="text-button" data-action="close">Вернуться на станцию</button></div>`);
@@ -164,7 +173,7 @@ export function createSpace(host:Host,root:HTMLElement) {
     return null;
   }
   function offerSave(kind:'room'|'stars'|'mail'){replaceModal(`<div data-artifact="${kind}"><h2 id="modal-title">Сохранить перед уходом?</h2><p>${kind==='room'?'В комнате':kind==='stars'?'В небе':'На почтовой полке'} остались изменения. Можно сохранить их, продолжить или оставить предыдущее сохранение.</p><div class="modal-actions"><button class="btn" data-space="artifact-save-close" data-value="${kind}">Сохранить и выйти</button><button class="btn secondary" data-space="artifact-return" data-value="${kind}">Продолжить</button><button class="text-button" data-space="artifact-discard" data-value="${kind}">Выйти без сохранения</button></div></div>`);}
-  root.addEventListener('click',e=>{const el=e.target as HTMLElement;const dialog=el.closest<HTMLDialogElement>('#modal');if(!dialog)return;const r=dialog.getBoundingClientRect();const outside=el===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(el.closest('[data-action="close"]')||outside){const dirty=unsavedArtifact();if(dirty){e.preventDefault();e.stopImmediatePropagation();offerSave(dirty);}}},true);
+  root.addEventListener('click',e=>{const el=e.target as HTMLElement;const dialog=el.closest<HTMLDialogElement>('#modal');if(!dialog)return;const r=dialog.getBoundingClientRect();const outside=el===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(el.closest('[data-action="close"]')||outside){factFromMuseum=false;const dirty=unsavedArtifact();if(dirty){e.preventDefault();e.stopImmediatePropagation();offerSave(dirty);}}},true);
   root.addEventListener('cancel',e=>{const dirty=unsavedArtifact();if(dirty){e.preventDefault();offerSave(dirty);}},true);
   window.addEventListener('beforeunload',e=>{if(unsavedArtifact()){e.preventDefault();e.returnValue='';}});
   root.addEventListener('keydown',e=>{
@@ -293,6 +302,30 @@ export function createSpace(host:Host,root:HTMLElement) {
       }
       return;
     }
+    const museumItem=(e.target as HTMLElement)?.closest<HTMLElement>('.museum-word, .museum-shape, .museum-postcard');
+    if(museumItem){
+      const selector=museumItem.classList.contains('museum-word')?'.museum-word':museumItem.classList.contains('museum-shape')?'.museum-shape':'.museum-postcard';
+      const items=Array.from(root.querySelectorAll<HTMLButtonElement>(selector));
+      const index=items.indexOf(museumItem as HTMLButtonElement);
+      if(index>=0&&items.length>1){
+        if(['ArrowRight','ArrowDown'].includes(e.key)){
+          e.preventDefault();
+          const nextIndex=(index+1)%items.length;
+          items[nextIndex]?.focus({preventScroll:true});
+        }else if(['ArrowLeft','ArrowUp'].includes(e.key)){
+          e.preventDefault();
+          const prevIndex=(index-1+items.length)%items.length;
+          items[prevIndex]?.focus({preventScroll:true});
+        }else if(e.key==='Home'){
+          e.preventDefault();
+          items[0]?.focus({preventScroll:true});
+        }else if(e.key==='End'){
+          e.preventDefault();
+          items[items.length-1]?.focus({preventScroll:true});
+        }
+      }
+      return;
+    }
   });
   root.addEventListener('change',e=>{const input=e.target as HTMLSelectElement;if(input.id==='mail-task'){if(!GAMES_ENABLED){host.toast(GAMES_PAUSED_MESSAGE);return;}mailSnapshot();mail=initialMail(Number(input.value));mailSelected=null;showMail('#mail-task');}if(input.hasAttribute('data-match-row')){matches[step]??=[];matches[step][Number(input.dataset.matchRow)]=input.value===''?-1:Number(input.value);submitted=false;document.querySelectorAll('.match-feedback').forEach(el=>el.remove());const next=document.querySelector<HTMLButtonElement>('[data-space=lesson-next]');if(next)next.innerHTML='Посмотреть объяснение '+I('ArrowRight');host.icons();}if(input.id==='sky-from'||input.id==='sky-to'){captureStar();if(input.id==='sky-from')skyFrom=Number(input.value);else skyTo=Number(input.value);skyRoute=null;skyAttempted=false;showStars(input.id);}if(input.id==='room-theme'||input.id==='room-palette'){roomSnapshot();if(input.id==='room-theme')room.theme=Number(input.value);else room.palette=Number(input.value);showRoom();}if(input.id==='star-color'){starSnapshot();stars.color=input.value;showStars('star-color');}if(input.id==='star-shape'){starSnapshot();stars={shape:Number(input.value),edges:[],title:''};starSelected=null;showHint=false;showStars('star-shape');}});
   root.addEventListener('input',e=>{if((e.target as HTMLElement).id==='star-title'){captureStar();const status=document.getElementById('star-save-status');const text=skySaveKey(stars)===skySaveKey(getSpace().stars)?'Небо сохранено.':'Есть изменения.';if(status&&status.textContent!==text)status.textContent=text;}});
@@ -351,22 +384,23 @@ export function createSpace(host:Host,root:HTMLElement) {
       case 'story-choice':storeStory(advanceStory(storyState(),Number(value)));break;
       case 'story-back':storeStory(rewindStory(storyState()));break;
       case 'story-restart':storeStory({stage:0,choices:[]});break;
-      case 'fact':factIndex=Math.max(0,facts.findIndex(f=>f.id===id));showFact();break;
-      case 'fact-next':if(factIndex<facts.length-1){factIndex++;showFact();}else{host.close();host.toast('Подборка просмотрена.');}break;
+      case 'fact':factFromMuseum=false;factIndex=Math.max(0,facts.findIndex(f=>f.id===id));showFact();break;
+      case 'fact-next':if(factIndex<facts.length-1){factIndex++;showFact();}else{factFromMuseum=false;host.close();host.toast('Подборка просмотрена.');}break;
       case 'course-filter':{const url=new URL(location.href);if(value==='all')url.searchParams.delete('topic');else if(/^[0-3]$/.test(value))url.searchParams.set('topic',value);else break;history.pushState(null,'',url);disposeThreeView();host.render();root.querySelector<HTMLElement>(`[data-space="course-filter"][data-value="${value}"]`)?.focus({preventScroll:true});break;}
       case 'fact-filter':factFilter=value;host.render();root.querySelector<HTMLElement>(`[data-space="fact-filter"][data-value="${value}"]`)?.focus({preventScroll:true});break;
       case 'favorites':onlyFavorites=!onlyFavorites;host.render();break;
       case 'fact-favorite':if(saveSpace(s=>{s.favorites=s.favorites.includes(id)?s.favorites.filter(f=>f!==id):[...s.favorites,id];})){if(document.querySelector('.fact-reading'))showFact();else host.render();}break;
-      case 'museum':museumSelection=[];museumStage=0;showMuseum();break;
-      case 'museum-start':museumSelection=[];museumKind=id as typeof museumKind;museumStage=1;showMuseum();break;
-      case 'museum-rule':museumSelection=[];museumStage=2;showMuseum();break;
-      case 'museum-more':museumSelection=[];museumStage=2;showMuseum();break;
-      case 'museum-resume':{const saved=getSpace().museum;if(saved){museumKind=saved.kind;museumStage=saved.stage;museumSelection=[...saved.selected];showMuseum();}break;}
-      case 'museum-save':if(saveSpace(s=>{s.museum={kind:museumKind,stage:museumStage as 1|2,selected:[...museumSelection]};})){showMuseum();host.toast('Экспонат сохранён.');}break;
-      case 'museum-word':museumSelection=[Number(value)];showMuseum();break;
-      case 'museum-shape':{const n=Number(value);museumSelection=museumSelection.includes(n)?museumSelection.filter(i=>i!==n):[...museumSelection,n];showMuseum();break;}
-      case 'museum-postcard':museumSelection=[Number(value)];showMuseum();break;
-      case 'museum-explain':factIndex=museumKind==='memory'?0:museumKind==='attention'?2:3;showFact();break;
+      case 'museum':factFromMuseum=false;museumSelection=[];museumStage=0;showMuseum('.lesson-option');break;
+      case 'museum-start':museumSelection=[];museumKind=id as typeof museumKind;museumStage=1;showMuseum('.museum-word, .museum-shape, .museum-postcard');break;
+      case 'museum-rule':museumSelection=[];museumStage=2;showMuseum('.museum-shape[data-value="0"]');break;
+      case 'museum-more':museumSelection=[];museumStage=2;showMuseum('.museum-postcard[data-value="3"]');break;
+      case 'museum-resume':{const saved=getSpace().museum;if(saved){museumKind=saved.kind;museumStage=saved.stage;museumSelection=[...saved.selected];showMuseum('.museum-word, .museum-shape, .museum-postcard');}break;}
+      case 'museum-save':if(saveSpace(s=>{s.museum={kind:museumKind,stage:museumStage as 1|2,selected:[...museumSelection]};})){showMuseum('[data-space="museum-save"]');host.toast('Экспонат сохранён.');}break;
+      case 'museum-word':museumSelection=[Number(value)];showMuseum(`.museum-word[data-value="${value}"]`);break;
+      case 'museum-shape':{const n=Number(value);museumSelection=museumSelection.includes(n)?museumSelection.filter(i=>i!==n):[...museumSelection,n];showMuseum(`.museum-shape[data-value="${value}"]`);break;}
+      case 'museum-postcard':museumSelection=[Number(value)];showMuseum(`.museum-postcard[data-value="${value}"]`);break;
+      case 'museum-explain':factFromMuseum=true;factIndex=museumKind==='memory'?0:museumKind==='attention'?2:3;showFact();break;
+      case 'museum-back':factFromMuseum=false;showMuseum('[data-space="museum-explain"]');break;
       case 'route-orbit-open':{const panel=document.getElementById('route-orbit-panel'),stage=document.getElementById('route-three-stage'),status=document.getElementById('route-three-status');if(!panel||!stage||!status)break;panel.hidden=false;el.setAttribute('aria-expanded','true');el.textContent='Скрыть объёмный маршрут';status.textContent='Готовим маршрут…';const currentProgress=getSpace().lessons;const currentNext=lessons.find(lesson=>!currentProgress.find(saved=>saved.id===lesson.id)?.completed)??lessons[0];const completedIndices=lessons.map((lesson,index)=>currentProgress.find(saved=>saved.id===lesson.id)?.completed?index:-1).filter(index=>index>=0);void openRouteView(stage,{total:lessons.length,completed:completedIndices,current:lessons.findIndex(lesson=>lesson.id===currentNext.id)}).then(ok=>{if(stage.isConnected&&!panel.hidden)status.textContent=ok?'Мятные точки — отмеченные темы, сиреневая — следующий шаг. Потяни карту пальцем или мышью.':'Список тем ниже работает без объёмной сцены.';});break;}
       case 'soft-exit-pick':switch(value){case 'room':showRoom();break;case 'stars':showStars();break;case 'learn':host.close();location.hash='#learn';host.render();break;case 'close':default:host.close();break;}break;
       case 'route-orbit-close':disposeThreeView();{const panel=document.getElementById('route-orbit-panel'),trigger=document.querySelector<HTMLElement>('[data-space="route-orbit-open"]');if(panel)panel.hidden=true;if(trigger){trigger.setAttribute('aria-expanded','false');trigger.textContent='Посмотреть маршрут в объёме';trigger.focus({preventScroll:true});}break;}
