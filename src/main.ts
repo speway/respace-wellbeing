@@ -114,9 +114,15 @@ function journalEntry(e: Entry, demoEntry: boolean) {
   const hasRatings = e.ratingsIncluded !== false;
   return `<article class="panel entry"><div class="entry-head"><span class="icon-circle sage">${icon(hasRatings ? moodFace(e.mood) : 'NotebookPen')}</span><div><strong>${contextNames[e.context]} · ${momentNames[e.moment]}</strong><span>${dateLabel(e.at,true)}${e.game?' · '+esc(e.game):''}</span></div>${!demoEntry ? `<button class="icon-button" data-action="delete-entry" data-id="${esc(e.id)}" aria-label="Удалить запись от ${dateLabel(e.at,true)}">${icon('Trash2')}</button>` : ''}</div>${hasRatings ? `<div class="entry-metrics"><span>Настроение <b>${e.mood}/10</b></span><span>Энергия <b>${e.energy}/10</b></span><span>Ощущение «надо» <b>${e.pressure}/10</b></span><span>Страх пропустить <b>${e.fomo}/10</b></span></div>` : '<p class="small-text muted">Запись без оценок</p>'}${hasRatings&&e.experience?`<div class="entry-metrics experience"><span>Удовольствие <b>${e.experience.pleasure}/10</b></span><span>Смысл <b>${e.experience.meaning}/10</b></span><span>Усилие <b>${e.experience.effort}/10</b></span><span>Пустота <b>${e.experience.emptiness}/10</b></span></div>`:''}${e.intention?`<p class="entry-intention">Мой выбор: ${esc(e.intention)}</p>`:''}${e.note?`<p class="entry-note">${esc(e.note)}</p>`:''}</article>`;
 }
+function entryCountLabel(count: number) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  const word = lastTwo >= 11 && lastTwo <= 14 ? 'записей' : last === 1 ? 'запись' : last >= 2 && last <= 4 ? 'записи' : 'записей';
+  return `${count} ${word}`;
+}
 function journalPage() {
   const entries = filteredEntries(demo ? demoEntries() : data.entries, journalDays, journalMoment, journalContext);
-  return `<div class="page-heading"><div><h1>Дневник</h1><p>Твои заметки и оценки, если ты решил их добавить.</p></div><button class="btn" data-action="checkin">${icon('Plus')} Записать момент</button></div><div class="filters"><label>Период<select id="journal-days">${[7,14,30,90].map(n=>`<option value="${n}" ${journalDays===n?'selected':''}>${n} дней</option>`).join('')}</select></label><label>Момент<select id="journal-moment"><option value="all">Все моменты</option>${Object.entries(momentNames).map(([v,t])=>`<option value="${v}" ${journalMoment===v?'selected':''}>${t}</option>`).join('')}</select></label><label>Занятие<select id="journal-context"><option value="all">Все занятия</option>${Object.entries(contextNames).map(([v,t])=>`<option value="${v}" ${journalContext===v?'selected':''}>${t}</option>`).join('')}</select></label></div><section class="panel chart-panel"><div class="section-title"><h2>${demo?'Пример динамики':'Мои наблюдения'}</h2><span class="tiny-label">${entries.length} записей ${demo?'· вымышленные данные':''}</span></div>${chart(entries)}</section><section class="entries-section"><div class="section-title"><h2>Записи дневника</h2><button class="text-button" data-action="export-csv">${icon('Download')} Скачать дневник</button></div>${entries.length ? `<div class="entry-list">${[...entries].reverse().map(e=>journalEntry(e,demo)).join('')}</div>`:'<p class="empty-small">За этот период записей нет. Попробуй выбрать другие фильтры.</p>'}</section><p class="muted small-text">Авторские вопросы для дневника. <a href="#about" data-nav="about">Об их ограничениях</a>.</p>`;
+  return `<div class="page-heading"><div><h1>Дневник</h1><p>Твои заметки и оценки, если ты решил их добавить.</p></div><button class="btn" data-action="checkin">${icon('Plus')} Записать момент</button></div><div class="filters"><label>Период<select id="journal-days">${[7,14,30,90].map(n=>`<option value="${n}" ${journalDays===n?'selected':''}>${n} дней</option>`).join('')}</select></label><label>Момент<select id="journal-moment"><option value="all">Все моменты</option>${Object.entries(momentNames).map(([v,t])=>`<option value="${v}" ${journalMoment===v?'selected':''}>${t}</option>`).join('')}</select></label><label>Занятие<select id="journal-context"><option value="all">Все занятия</option>${Object.entries(contextNames).map(([v,t])=>`<option value="${v}" ${journalContext===v?'selected':''}>${t}</option>`).join('')}</select></label></div><section class="panel chart-panel"><div class="section-title"><h2>${demo?'Пример динамики':'Мои наблюдения'}</h2><span class="tiny-label">${entryCountLabel(entries.length)} ${demo?'· вымышленные данные':''}</span></div>${chart(entries)}</section><section class="entries-section"><div class="section-title"><h2>Записи дневника</h2><button class="text-button" data-action="export-csv">${icon('Download')} Скачать дневник</button></div>${entries.length ? `<div class="entry-list">${[...entries].reverse().map(e=>journalEntry(e,demo)).join('')}</div>`:'<p class="empty-small">За этот период записей нет. Попробуй выбрать другие фильтры.</p>'}</section><p class="muted small-text">Авторские вопросы для дневника. <a href="#about" data-nav="about">Об их ограничениях</a>.</p>`;
 }
 function useProfile(id:string|null,value?:AppData){
   storageKey=id?`${STORAGE_KEY}:${id}`:STORAGE_KEY;
@@ -152,16 +158,54 @@ function closeModal() { document.querySelector<HTMLDialogElement>('#modal')?.clo
 function scale(name: string, label: string, low: string, high: string, value = 5) { return `<label class="scale-label" for="${name}">${label}<output id="${name}-output" for="${name}">${value}<span>/10</span></output></label><input type="range" id="${name}" name="${name}" min="0" max="10" step="1" value="${value}"/><div class="scale-ends"><span>${low}</span><span>${high}</span></div>`; }
 function openCheckin(mood = 5) {
   if (!data.accepted) { mutate(d=>{d.accepted=true;}); render(); }
-  openModal(`<h2 id="modal-title">Записать момент</h2><p class="muted">Можно оставить пару слов и закончить. Шкалы открываются отдельно по желанию и не являются диагностикой.</p><form id="checkin-form"><div class="form-columns"><label>Занятие<select name="context" id="checkin-context"><option value="gaming">Игра</option><option value="work">Работа / учёба</option><option value="rest">Отдых</option></select></label><label>Момент<select name="moment"><option value="day">В течение дня</option><option value="before">До занятия</option><option value="after">После занятия</option></select></label></div><label id="game-label">Игра <span class="optional">необязательно</span><input name="game" maxlength="100" placeholder="Название игры"/></label><details class="experience-form ratings-form"><summary>Добавить оценки <span class="optional">необязательно</span></summary><p class="small-text muted">Это личные отметки для дневника, не психологический тест. Ползунки изначально стоят на 5/10; если раздел открыт и запись сохранена, их положения попадут в неё.</p><div class="scales">${scale('mood','Настроение','Очень неприятное','Очень приятное',mood)}${scale('energy','Энергия','Сил совсем нет','Много сил')}${scale('pressure','Чувство «я должен играть / заниматься»','Совсем нет','Очень сильное')}${scale('fomo','Страх что-то упустить','Совсем нет','Очень сильный')}</div><details class="experience-form"><summary>Подробнее о занятии <span class="optional">необязательно</span></summary><label class="check-label"><input type="checkbox" name="include-experience" id="include-experience"/> Добавить эти оценки в запись</label><p class="small-text muted">Усилие — сколько энергии ты вложил, а не насколько устал. Эти вопросы — для дневника, не диагностика.</p><div class="scales">${scale('pleasure','Удовольствие от занятия','Совсем нет','Очень много')}${scale('meaning','Ощущение смысла','Совсем нет','Очень сильное')}${scale('effort','Субъективное усилие','Совсем нет','Очень сильное')}${scale('emptiness','Ощущение пустоты','Совсем нет','Очень сильное')}</div></details></details><label>Мой выбор сейчас <span class="optional">необязательно</span><input name="intention" maxlength="300" placeholder="Поиграть ради сюжета, отдохнуть, поговорить…"/></label><label>Пара слов для себя <span class="optional">необязательно</span><textarea name="note" maxlength="2000" rows="3" placeholder="Например, что хочется сохранить в памяти"></textarea></label><p id="form-error" class="form-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="close">Не сейчас</button><button class="btn" type="submit">Сохранить запись ${icon('Check')}</button></div><p class="small-text muted">${account.isSigned()&&account.personal()?'Запись сохранится здесь и в облаке: перенос личных данных включён.':'Запись сохраняется только на этом устройстве.'}</p></form>`, true);
-  document.querySelector('#checkin-context')!.addEventListener('change', e => { document.querySelector<HTMLElement>('#game-label')!.hidden = (e.target as HTMLSelectElement).value !== 'gaming'; });
-  document.querySelector<HTMLFormElement>('#checkin-form')!.addEventListener('submit', e => {
-    e.preventDefault(); const f = new FormData(e.currentTarget as HTMLFormElement); const now=new Date();
-    const ratingsIncluded=document.querySelector<HTMLDetailsElement>('.ratings-form')!.open;
+  openModal(`
+    <h2 id="modal-title">Записать момент</h2>
+    <p class="muted">Можно оставить пару слов и закончить. Шкалы открываются отдельно по желанию и не являются диагностикой.</p>
+    <form id="checkin-form">
+      <div class="form-columns">
+        <label>Занятие<select name="context" id="checkin-context"><option value="gaming">Игра</option><option value="work">Работа / учёба</option><option value="rest">Отдых</option></select></label>
+        <label>Момент<select name="moment"><option value="day">В течение дня</option><option value="before">До занятия</option><option value="after">После занятия</option></select></label>
+      </div>
+      <label id="game-label">Игра <span class="optional">необязательно</span><input name="game" maxlength="100" placeholder="Название игры"/></label>
+      <details class="experience-form ratings-form">
+        <summary>Добавить оценки <span class="optional">необязательно</span></summary>
+        <label class="check-label"><input type="checkbox" name="include-ratings" id="include-ratings"/> Сохранить оценки с этой записью</label>
+        <p class="small-text muted">Это личные отметки для дневника, не психологический тест. Отметь флажок, если хочешь сохранить основные оценки. Каждый ползунок начинается с 5/10 — проверь значения перед сохранением. Без отметки шкалы остаются скрытыми и не сохраняются.</p>
+        <div class="scales" id="primary-ratings" hidden>${scale('mood','Настроение','Очень неприятное','Очень приятное',mood)}${scale('energy','Энергия','Сил совсем нет','Много сил')}${scale('pressure','Чувство «я должен играть / заниматься»','Совсем нет','Очень сильное')}${scale('fomo','Страх что-то упустить','Совсем нет','Очень сильный')}</div>
+        <details class="experience-form" id="experience-details" hidden>
+          <summary>Подробнее о занятии <span class="optional">необязательно</span></summary>
+          <label class="check-label"><input type="checkbox" name="include-experience" id="include-experience"/> Добавить дополнительные оценки в запись</label>
+          <p class="small-text muted">Усилие — сколько энергии ты вложил, а не насколько устал. Эти вопросы — для дневника, не диагностика.</p>
+          <div class="scales">${scale('pleasure','Удовольствие от занятия','Совсем нет','Очень много')}${scale('meaning','Ощущение смысла','Совсем нет','Очень сильное')}${scale('effort','Субъективное усилие','Совсем нет','Очень сильное')}${scale('emptiness','Ощущение пустоты','Совсем нет','Очень сильное')}</div>
+        </details>
+      </details>
+      <label>Мой выбор сейчас <span class="optional">необязательно</span><input name="intention" maxlength="300" placeholder="Поиграть ради сюжета, отдохнуть, поговорить…"/></label>
+      <label>Пара слов для себя <span class="optional">необязательно</span><textarea name="note" maxlength="2000" rows="3" placeholder="Например, что хочется сохранить в памяти"></textarea></label>
+      <p id="form-error" class="form-error" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="btn secondary" data-action="close">Не сейчас</button><button class="btn" type="submit">Сохранить запись ${icon('Check')}</button></div>
+      <p class="small-text muted">${account.isSigned()&&account.personal()?'Запись сохранится здесь и в облаке: перенос личных данных включён.':'Запись сохраняется только на этом устройстве.'}</p>
+    </form>`, true);
+  const form = document.querySelector<HTMLFormElement>('#checkin-form')!;
+  const ratingsToggle = form.querySelector<HTMLInputElement>('#include-ratings')!;
+  const primaryRatings = form.querySelector<HTMLDivElement>('#primary-ratings')!;
+  const experienceDetails = form.querySelector<HTMLDetailsElement>('#experience-details')!;
+  ratingsToggle.addEventListener('change', () => {
+    primaryRatings.hidden = !ratingsToggle.checked;
+    experienceDetails.hidden = !ratingsToggle.checked;
+    if (!ratingsToggle.checked) {
+      experienceDetails.open = false;
+      form.querySelector<HTMLInputElement>('#include-experience')!.checked = false;
+    }
+  });
+  form.querySelector('#checkin-context')!.addEventListener('change', e => { document.querySelector<HTMLElement>('#game-label')!.hidden = (e.target as HTMLSelectElement).value !== 'gaming'; });
+  form.addEventListener('submit', e => {
+    e.preventDefault(); const f = new FormData(form); const now=new Date();
+    const ratingsIncluded=ratingsToggle.checked;
     const context=f.get('context') as Context;
     const game=context==='gaming'?String(f.get('game')||'').trim():'';
     const note=String(f.get('note')||'').trim();
     const intention=String(f.get('intention')||'').trim();
-    if(!ratingsIncluded&&!note&&!intention&&!game){document.querySelector('#form-error')!.textContent='Добавь пару слов или открой оценки. Пустую запись сохранять не нужно.';return;}
+    if(!ratingsIncluded&&!note&&!intention&&!game){document.querySelector('#form-error')!.textContent='Добавь пару слов или отметь сохранение оценок. Пустую запись сохранять не нужно.';return;}
     const entry: Entry={ id:crypto.randomUUID(), at:now.toISOString(), day:dayKey(now), context, moment:f.get('moment') as Moment, mood:Number(f.get('mood')),energy:Number(f.get('energy')),pressure:Number(f.get('pressure')),fomo:Number(f.get('fomo')),ratingsIncluded,note,intention };
     if(game)entry.game=game;
     if(ratingsIncluded&&f.get('include-experience'))entry.experience={pleasure:Number(f.get('pleasure')),meaning:Number(f.get('meaning')),effort:Number(f.get('effort')),emptiness:Number(f.get('emptiness'))};
