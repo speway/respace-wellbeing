@@ -174,7 +174,7 @@ export function createSpace(host:Host,root:HTMLElement) {
   }
   function offerSave(kind:'room'|'stars'|'mail'){replaceModal(`<div data-artifact="${kind}"><h2 id="modal-title">Сохранить перед уходом?</h2><p>${kind==='room'?'В комнате':kind==='stars'?'В небе':'На почтовой полке'} остались изменения. Можно сохранить их, продолжить или оставить предыдущее сохранение.</p><div class="modal-actions"><button class="btn" data-space="artifact-save-close" data-value="${kind}">Сохранить и выйти</button><button class="btn secondary" data-space="artifact-return" data-value="${kind}">Продолжить</button><button class="text-button" data-space="artifact-discard" data-value="${kind}">Выйти без сохранения</button></div></div>`);}
   root.addEventListener('click',e=>{const el=e.target as HTMLElement;const dialog=el.closest<HTMLDialogElement>('#modal');if(!dialog)return;const r=dialog.getBoundingClientRect();const outside=el===dialog&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);if(el.closest('[data-action="close"]')||outside){factFromMuseum=false;const dirty=unsavedArtifact();if(dirty){e.preventDefault();e.stopImmediatePropagation();offerSave(dirty);}}},true);
-  root.addEventListener('cancel',e=>{const dirty=unsavedArtifact();if(dirty){e.preventDefault();offerSave(dirty);}},true);
+  root.addEventListener('cancel',e=>{factFromMuseum=false;const dirty=unsavedArtifact();if(dirty){e.preventDefault();offerSave(dirty);}},true);
   window.addEventListener('beforeunload',e=>{if(unsavedArtifact()){e.preventDefault();e.returnValue='';}});
   root.addEventListener('keydown',e=>{
     const el=(e.target as HTMLElement)?.closest<HTMLElement>('.room-slot');
