@@ -63,11 +63,44 @@ jobs:
 
   build-ios:
     name: Build iOS Application
-    runs-on: macos-14
-    continue-on-error: true
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          XCODE_PATH="/Applications/Xcode_26.0.app"
+          if [ ! -d "$XCODE_PATH" ]; then
+            for app in /Applications/Xcode_26*.app; do
+              case "$app" in
+                *beta*|*Beta*) continue ;;
+                *) if [ -d "$app" ]; then XCODE_PATH="$app"; break; fi ;;
+              esac
+            done
+          fi
+          if [ ! -d "$XCODE_PATH" ]; then
+            echo "Error: No stable Xcode 26.x installation found in /Applications"
+            ls -d /Applications/Xcode* 2>/dev/null || true
+            exit 1
+          fi
+          echo "Selecting $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH"
+          XC_VER=$(xcodebuild -version)
+          echo "$XC_VER"
+          case "$XC_VER" in
+            *Beta*|*beta*)
+              echo "Error: Selected Xcode is a beta release"
+              exit 1
+              ;;
+            Xcode\ 26.*)
+              echo "Xcode 26.x confirmed"
+              ;;
+            *)
+              echo "Error: Xcode major version is not 26.x"
+              exit 1
+              ;;
+          esac
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -112,7 +145,8 @@ jobs:
             cd build
             zip -qr Respace-unsigned.ipa Payload
           else
-            echo "App.app not found in Release-iphoneos; skipping IPA packaging."
+            echo "Error: App.app not found in Release-iphoneos"
+            exit 1
           fi
 
       - name: Upload iOS IPA
@@ -120,4 +154,4 @@ jobs:
         with:
           name: respace-ios-unsigned-ipa
           path: build/Respace-unsigned.ipa
-          if-no-files-found: warn
+          if-no-files-found: error
